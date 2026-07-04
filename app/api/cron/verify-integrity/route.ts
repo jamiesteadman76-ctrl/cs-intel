@@ -60,6 +60,11 @@ function isAuthorized(req: NextRequest): boolean {
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) return unauthorized()
 
+  // Outer try/catch: each step below already returns a structured 500, but
+  // any unexpected throw (TypeError on a malformed row, JSON-parse error,
+  // surprise network failure, etc.) lands here so the cron run produces a
+  // JSON envelope instead of an HTML error page.
+  try {
   let supabase
   try {
     supabase = createSupabaseAdmin()
@@ -120,6 +125,15 @@ export async function GET(request: NextRequest) {
     },
     { status: 200 }
   )
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: 'unexpected_error',
+        detail: err instanceof Error ? err.message : String(err),
+      },
+      { status: 500 }
+    )
+  }
 }
 
 // POST is a no-op alias so manual invocations from `curl -X POST` (or future
