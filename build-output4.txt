@@ -1,0 +1,33 @@
+﻿  Ôû▓ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Linting and checking validity of types ...
+node.exe : Failed to compile.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Percy Jay\AppData\Roam ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Failed to compile.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+./app/admin/page.tsx:79:25
+Type error: Argument of type '(User & { predictionCount: number; correctCount: number; accuracy: number; })[]' is not 
+assignable to parameter of type 'SetStateAction<UserWithStats[]>'.
+  Type '(User & { predictionCount: number; correctCount: number; accuracy: number; })[]' is not assignable to type 
+'UserWithStats[]'.
+    Type 'User & { predictionCount: number; correctCount: number; accuracy: number; }' is not assignable to type 
+'UserWithStats'.
+      Types of property 'avatar' are incompatible.
+        Type 'string | null' is not assignable to type 'string'.
+          Type 'null' is not assignable to type 'string'.
+
+[0m [90m 77 |[39m     [36mtry[39m {[0m
+[0m [90m 78 |[39m       [36mconst[39m data [33m=[39m [36mawait[39m getUsersWithStats()[0m
+[0m[31m[1m>[22m[39m[90m 79 |[39m       setUsersWithStats(data)[0m
+[0m [90m    |[39m                         [31m[1m^[22m[39m[0m
+[0m [90m 80 |[39m     } [36mcatch[39m (error) {[0m
+[0m [90m 81 |[39m       console[33m.[39merror([32m'Error fetching users:'[39m[33m,[39m error)[0m
+[0m [90m 82 |[39m     } [36mfinally[39m {[0m
+Next.js build worker exited with code: 1 and signal: null

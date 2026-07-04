@@ -23,15 +23,8 @@ export default function CommunityPredictionsWidget({
                 <p className="text-sm text-gray-400 mt-1">{prediction.prediction}</p>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-[#00d4ff]">{prediction.confidence}%</p>
                 <p className="text-xs text-gray-500">{prediction.timestamp}</p>
               </div>
-            </div>
-            <div className="w-full bg-[#0a0d12] rounded-full h-2">
-              <div
-                className="bg-gradient-to-r from-[#e94560] to-[#ff6b6b] h-2 rounded-full"
-                style={{ width: `${prediction.confidence}%` }}
-              ></div>
             </div>
           </div>
         ))}

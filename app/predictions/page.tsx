@@ -1,25 +1,236 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import {
-  predictionMatches,
-  communityConsensus,
-  topPredictors,
-  myPredictions,
-  recentCommunityPicks,
-  predictionRules,
-  seasonStats,
-} from '@/lib/data'
-import type { PredictionMatch, MyPrediction, CommunityConsensus } from '@/lib/types'
+import TeamLogo from '@/components/TeamLogo'
+import { getMatchesWithTeams, getPredictions, getUsers, submitPrediction } from '@/lib/api'
+import { useUser } from '@/lib/auth/useUser'
+import type { CommunityConsensus, TopPredictor, MyPrediction, RecentCommunityPick } from '@/lib/types'
+import type { DbMatch, Prediction, User } from '@/lib/api'
 
 const tabs = ['Today\'s Picks', 'Upcoming Matches', 'Community Consensus', 'My Predictions'] as const
 type Tab = typeof tabs[number]
+type MatchWithResolvedTeams = DbMatch & {
+  team1Data?: DbMatch['team1']
+  team2Data?: DbMatch['team2']
+  tournamentData?: { name?: string }
+}
+
+function getTeam(match: MatchWithResolvedTeams, side: 'team1' | 'team2') {
+  return side === 'team1' ? (match.team1Data || match.team1) : (match.team2Data || match.team2)
+}
+
+function getTeamName(match: MatchWithResolvedTeams, side: 'team1' | 'team2'): string {
+  return getTeam(match, side).name
+}
+
+function getTournamentName(match: MatchWithResolvedTeams): string {
+  return match.tournamentData?.name || match.tournament
+}
 
 export default function PredictionsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('Today\'s Picks')
+  const [predictionMatches, setPredictionMatches] = useState<MatchWithResolvedTeams[]>([])
+  const [communityConsensus, setCommunityConsensus] = useState<CommunityConsensus[]>([])
+  const [topPredictors, setTopPredictors] = useState<TopPredictor[]>([])
+  const [myPredictions, setMyPredictions] = useState<MyPrediction[]>([])
+  const [recentCommunityPicks, setRecentCommunityPicks] = useState<RecentCommunityPick[]>([])
+  const [allPredictions, setAllPredictions] = useState<Prediction[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [matchId, setMatchId] = useState<string | null>(null)
+  const { user, loading: authLoading } = useUser()
+
+  const [communityAccuracy, setCommunityAccuracy] = useState(0)
+  const [activePredictorsCount, setActivePredictorsCount] = useState(0)
+  const [completedPredsCount, setCompletedPredsCount] = useState(0)
+  const [predictionStats, setPredictionStats] = useState({
+    predictionsToday: 0,
+    correct: 0,
+    incorrect: 0,
+    pending: 0,
+  })
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const matchesData = await getMatchesWithTeams()
+      const predictionsData = await getPredictions()
+      const usersData = await getUsers()
+
+      setAllPredictions(predictionsData)
+      setPredictionMatches(matchesData)
+      setActivePredictorsCount(usersData.length)
+
+      const completedPreds = predictionsData.filter((p) => p.result !== 'pending')
+      const correctPreds = completedPreds.filter((p) => p.result === 'correct')
+      const incorrectPreds = completedPreds.filter((p) => p.result === 'incorrect')
+      const pendingPreds = predictionsData.filter((p) => p.result === 'pending')
+      const overallAccuracy = completedPreds.length > 0
+        ? Math.round((correctPreds.length / completedPreds.length) * 100)
+        : 0
+
+      setCommunityAccuracy(overallAccuracy)
+      setActivePredictorsCount(usersData.length)
+      setCompletedPredsCount(completedPreds.length)
+      setPredictionStats({
+        predictionsToday: predictionsData.length,
+        correct: correctPreds.length,
+        incorrect: incorrectPreds.length,
+        pending: pendingPreds.length,
+      })
+
+      const transformedConsensus: CommunityConsensus[] = []
+      const seenMatches = new Set<string>()
+      predictionsData.forEach((p: Prediction) => {
+        const match = matchesData.find((m) => m.id === p.match_id)
+        if (match && !seenMatches.has(match.id)) {
+          seenMatches.add(match.id)
+          const matchPredictions = predictionsData.filter((pred) => pred.match_id === match.id)
+          const prediction1Count = matchPredictions.filter((pred) => pred.prediction === 'team1').length
+          const total = matchPredictions.length
+          const percentage = total > 0 ? Math.round((prediction1Count / total) * 100) : 50
+          const totalPredictions = matchPredictions.length
+          const confidence = totalPredictions > 100 ? 'high' : totalPredictions > 50 ? 'medium' : 'low'
+          transformedConsensus.push({
+            id: match.id,
+            team1: getTeamName(match, 'team1'),
+            team2: getTeamName(match, 'team2'),
+            logo1: getTeam(match, 'team1').logo,
+            logo2: getTeam(match, 'team2').logo,
+            percentage,
+            confidence,
+            totalPredictions,
+          })
+        }
+      })
+
+      setCommunityConsensus(transformedConsensus.slice(0, 6))
+
+      const transformedTopPredictors: TopPredictor[] = usersData.map((u: User, i: number) => ({
+        id: u.id,
+        username: u.username,
+        avatar: u.avatar || '👤',
+        accuracy: overallAccuracy,
+        intelScore: u.intel_score,
+        streak: 0,
+      }))
+
+      setTopPredictors(transformedTopPredictors)
+
+      const transformedMyPredictions: MyPrediction[] = predictionsData
+        .filter((p: Prediction) => p.user_id === user?.id)
+        .slice(0, 6)
+        .map((p: Prediction) => {
+          const match = matchesData.find((m) => m.id === p.match_id)
+          return {
+            id: p.id,
+            match: match ? `${getTeamName(match, 'team1')} vs ${getTeamName(match, 'team2')}` : 'Unknown match',
+            prediction: match ? (p.prediction === 'team1' ? `${getTeamName(match, 'team1')} wins` : `${getTeamName(match, 'team2')} wins`) : 'Unknown prediction',
+            result: (p.result || 'pending') as 'correct' | 'incorrect' | 'pending',
+            date: new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          }
+        })
+
+      setMyPredictions(transformedMyPredictions)
+
+      const transformedCommunityPicks: RecentCommunityPick[] = predictionsData.slice(0, 6).map((p: Prediction) => {
+        const match = matchesData.find((m) => m.id === p.match_id)
+        return {
+          id: p.id,
+          username: p.username || 'Anonymous',
+          avatar: p.avatar || '👤',
+          match: match ? `${getTeamName(match, 'team1')} vs ${getTeamName(match, 'team2')}` : 'Unknown match',
+          prediction: match ? (p.prediction ? `${getTeamName(match, 'team1')} wins` : `${getTeamName(match, 'team2')} wins`) : 'Unknown prediction',
+          timestamp: new Date(p.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + ' ago',
+        }
+      })
+
+      setRecentCommunityPicks(transformedCommunityPicks)
+    } catch (err: any) {
+      setError(err.message || 'Failed to load predictions data')
+    } finally {
+      setLoading(false)
+    }
+  }, [user?.id])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible' && user?.id && !authLoading) {
+        fetchData()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [fetchData, user?.id, authLoading])  // Rules mirror the actual scoring math implemented by
+  // public.evaluate_match_predictions(...) — the previous "+10 / -3" copy
+  // was a hold-over from before the confidence-weighted formula shipped.
+  // See supabase/migrations/20260623000000_add_predictions_confidence.sql
+  // and docs/POST_REMEDIATION_VALIDATION.md for the contract.
+  const predictionRules = [
+    {
+      title: 'One prediction per match',
+      description: 'You may only submit one prediction per match. Edit allowed until match resolves.',
+    },
+    {
+      title: 'Scoring system (confidence-weighted)',
+      description:
+        'Correct = +confidence×10 (≈ +500 at the default 50, up to +1000 at 100). ' +
+        'Wrong = −confidence×5 (≈ −250 at 50, up to −500 at 100). ' +
+        'Confidence defaults to 50 until a slider is exposed.',
+    },
+    {
+      title: 'Draws (voids) do not move your score',
+      description:
+        'If a match is ruled void, all predictions on it stay at 0 delta — neither winners nor losers swap points.',
+    },
+    {
+      title: 'Scores never go negative',
+      description:
+        'If a loss would push your Intel Score below 0, only the available balance is deducted. Reversals (admin corrections) restore exactly what was recorded.',
+    },
+    {
+      title: 'Season resets',
+      description: 'Predictions reset each season. Carry-over bonuses awarded to top 100.',
+    },
+  ] 
+
+  const seasonStats = [
+    { label: 'Current Season', value: 'Q2 2026' },
+    { label: 'Time Remaining', value: '28 days' },
+    { label: 'Prize Pool', value: '$5,000' },
+    { label: 'Top 10 Bonus', value: '+20% Score' },
+    { label: 'Your Rank', value: '#3,847' },
+    { label: 'Your Accuracy', value: '71%' },
+  ]
+
+  if (loading) {
+    return (
+      <div className="bg-[#0f1419] text-gray-100 min-h-screen flex items-center justify-center">
+        <p className="text-xl text-gray-400">Loading predictions...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-[#0f1419] text-gray-100 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-red-400 mb-4">Error loading predictions</p>
+          <p className="text-gray-400">{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-[#0f1419] text-gray-100 min-h-screen">
@@ -41,10 +252,10 @@ export default function PredictionsPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {[
-                { label: 'Predictions Today', value: '2,847', accent: false },
-                { label: 'Community Accuracy', value: '64%', accent: true },
-                { label: 'Active Predictors', value: '3,891', accent: false },
-                { label: 'Matches Available', value: '12', accent: false },
+                { label: 'Predictions Today', value: String(predictionStats.predictionsToday), accent: false },
+                { label: 'Community Accuracy', value: `${communityAccuracy}%`, accent: true },
+                { label: 'Active Predictors', value: String(activePredictorsCount), accent: false },
+                { label: 'Matches Available', value: String(predictionMatches.length), accent: false },
               ].map((stat) => (
                 <div key={stat.label} className={`rounded-lg p-4 md:p-5 border ${stat.accent ? 'bg-gradient-to-br from-[#e94560]/10 to-[#0f3460]/10 border-[#e94560]/30' : 'bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border-gray-700'}`}>
                   <p className={`text-2xl md:text-3xl font-bold mb-1 ${stat.accent ? 'text-[#00d4ff]' : 'text-white'}`}>{stat.value}</p>
@@ -71,21 +282,21 @@ export default function PredictionsPage() {
                   ))}
                 </div>
 
-                {activeTab === 'Today\'s Picks' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {predictionMatches.filter(m => m.status === 'upcoming' || m.status === 'live').map((match) => (
-                      <MatchCard key={match.id} match={match} />
-                    ))}
-                  </div>
-                )}
+{activeTab === 'Today\'s Picks' && (
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {predictionMatches.filter(m => m.status === 'upcoming').map((match) => (
+                        <MatchCard key={match.id} match={match} onPredict={setMatchId} userId={user?.id} hasPredicted={!!allPredictions.find(p => p.match_id === match.id && p.user_id === user?.id)} />
+                      ))}
+                    </div>
+                 )}
 
-                {activeTab === 'Upcoming Matches' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {predictionMatches.filter(m => m.status === 'upcoming').map((match) => (
-                      <MatchCard key={match.id} match={match} />
-                    ))}
-                  </div>
-                )}
+                 {activeTab === 'Upcoming Matches' && (
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {predictionMatches.filter(m => m.status === 'upcoming').map((match) => (
+                       <MatchCard key={match.id} match={match} onPredict={setMatchId} userId={user?.id} hasPredicted={!!allPredictions.find(p => p.match_id === match.id && p.user_id === user?.id)} />
+                     ))}
+                   </div>
+                 )}
 
                 {activeTab === 'Community Consensus' && (
                   <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-lg overflow-hidden">
@@ -99,20 +310,20 @@ export default function PredictionsPage() {
 
                 {activeTab === 'My Predictions' && (
                   <div>
-                    <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-lg overflow-hidden mb-6">
-                      <div className="hidden md:grid grid-cols-12 gap-2 px-5 py-3 border-b border-gray-800 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                        <div className="col-span-4">Match</div>
-                        <div className="col-span-3 text-center">Prediction</div>
-                        <div className="col-span-2 text-center">Confidence</div>
-                        <div className="col-span-2 text-center">Result</div>
-                        <div className="col-span-1 text-right">Date</div>
-                      </div>
-                      <div className="divide-y divide-gray-800">
-                        {myPredictions.map((pred) => (
-                          <PredictionRow key={pred.id} prediction={pred} />
-                        ))}
-                      </div>
-                    </div>
+<div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-lg overflow-hidden mb-6">
+               <div className="hidden md:grid grid-cols-12 gap-2 px-5 py-3 border-b border-gray-800 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                 <div className="col-span-4">Match</div>
+                 <div className="col-span-3 text-center">Prediction</div>
+                 <div className="col-span-2 text-center">Result</div>
+                 <div className="col-span-1 text-right">Date</div>
+                 <div className="col-span-2"></div>
+               </div>
+               <div className="divide-y divide-gray-800">
+                 {myPredictions.map((pred) => (
+                   <PredictionRow key={pred.id} prediction={pred} />
+                 ))}
+               </div>
+             </div>
 
                     <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-lg p-5 md:p-6">
                       <h3 className="text-lg font-bold text-white mb-4">Your Overall Accuracy</h3>
@@ -169,13 +380,11 @@ export default function PredictionsPage() {
                             <span className="text-xs text-gray-500">predicted</span>
                             <span className="text-sm font-medium text-[#00d4ff]">{pick.prediction}</span>
                           </div>
-                          <div className="flex items-center gap-3 text-xs text-gray-500">
-                            <span>{pick.match}</span>
-                            <span>•</span>
-                            <span>{pick.confidence}% confidence</span>
-                            <span>•</span>
-                            <span>{pick.timestamp}</span>
-                          </div>
+<div className="flex items-center gap-3 text-xs text-gray-500">
+                             <span>{pick.match}</span>
+                             <span>•</span>
+                             <span>{pick.timestamp}</span>
+                           </div>
                         </div>
                       </div>
                     ))}
@@ -185,9 +394,18 @@ export default function PredictionsPage() {
 
               <section>
                 <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-6">Make a Prediction</h2>
-                <PredictionForm />
+                <PredictionForm userId={user?.id} />
               </section>
             </div>
+
+{matchId && (
+               <PredictionModal
+                 matchId={matchId}
+                 onClose={() => setMatchId(null)}
+                 onSuccess={fetchData}
+                 userId={user?.id}
+               />
+             )}
 
             <div className="space-y-6">
               <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-lg p-5 md:p-6">
@@ -241,28 +459,37 @@ export default function PredictionsPage() {
                   <div>
                     <div className="flex items-center justify-between text-xs mb-1">
                       <span className="text-gray-500">Overall</span>
-                      <span className="text-[#00d4ff] font-bold">64%</span>
+                      <span className="text-[#00d4ff] font-bold">{communityAccuracy}%</span>
                     </div>
                     <div className="w-full h-1.5 bg-[#0f1419] rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-[#e94560] to-[#00d4ff] rounded-full" style={{ width: '64%' }} />
+                      <div className="h-full bg-gradient-to-r from-[#e94560] to-[#00d4ff] rounded-full" style={{ width: `${communityAccuracy}%` }} />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-gray-500">Top 10%</span>
-                      <span className="text-green-400 font-bold">78%</span>
+                      <span className="text-gray-500">Correct</span>
+                      <span className="text-green-400 font-bold">{predictionStats.correct}</span>
                     </div>
                     <div className="w-full h-1.5 bg-[#0f1419] rounded-full overflow-hidden">
-                      <div className="h-full bg-green-400 rounded-full" style={{ width: '78%' }} />
+                      <div className="h-full bg-green-400 rounded-full" style={{ width: `${completedPredsCount > 0 ? Math.round((predictionStats.correct / completedPredsCount) * 100) : 0}%` }} />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-gray-500">Your accuracy</span>
-                      <span className="text-yellow-400 font-bold">71%</span>
+                      <span className="text-gray-500">Incorrect</span>
+                      <span className="text-red-400 font-bold">{predictionStats.incorrect}</span>
                     </div>
                     <div className="w-full h-1.5 bg-[#0f1419] rounded-full overflow-hidden">
-                      <div className="h-full bg-yellow-400 rounded-full" style={{ width: '71%' }} />
+                      <div className="h-full bg-red-400 rounded-full" style={{ width: `${completedPredsCount > 0 ? Math.round((predictionStats.incorrect / completedPredsCount) * 100) : 0}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="text-gray-500">Pending</span>
+                      <span className="text-yellow-400 font-bold">{predictionStats.pending}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#0f1419] rounded-full overflow-hidden">
+                      <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${allPredictions.length > 0 ? Math.round((predictionStats.pending / allPredictions.length) * 100) : 0}%` }} />
                     </div>
                   </div>
                 </div>
@@ -291,11 +518,15 @@ export default function PredictionsPage() {
 /* Match Card                                                                 */
 /* ========================================================================== */
 
-function MatchCard({ match }: { match: PredictionMatch }) {
+function MatchCard({ match, onPredict, userId, hasPredicted }: { match: MatchWithResolvedTeams; onPredict: (matchId: string) => void; userId?: string; hasPredicted?: boolean }) {
+  if (!match?.id) {
+    return null
+  }
   return (
-    <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-xl p-5 md:p-6 hover:border-[#e94560]/40 transition-all">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">{match.tournament}</span>
+    <Link href={`/match/${match.id}`} className="block">
+      <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-xl p-5 md:p-6 hover:border-[#e94560]/40 transition-all">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">{getTournamentName(match)}</span>
         {match.status === 'live' && (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-400/10 text-red-400 border border-red-400/20">
             <span className="relative flex h-1.5 w-1.5">
@@ -307,15 +538,15 @@ function MatchCard({ match }: { match: PredictionMatch }) {
         )}
       </div>
 
-      <div className="flex items-center justify-between mb-5">
+<div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">{match.logo1}</span>
-          <span className="text-sm font-bold text-white">{match.team1}</span>
+          <TeamLogo team={getTeam(match, 'team1')} size="xl" />
+          <span className="text-sm font-bold text-white">{getTeamName(match, 'team1')}</span>
         </div>
         <span className="text-xs text-gray-600 font-bold uppercase">vs</span>
         <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-white">{match.team2}</span>
-          <span className="text-2xl">{match.logo2}</span>
+          <span className="text-sm font-bold text-white">{getTeamName(match, 'team2')}</span>
+          <TeamLogo team={getTeam(match, 'team2')} size="xl" />
         </div>
       </div>
 
@@ -329,23 +560,31 @@ function MatchCard({ match }: { match: PredictionMatch }) {
           <div className="bg-[#00d4ff] h-full rounded-r-full" style={{ width: `${match.prediction2}%` }} />
         </div>
         <div className="flex items-center justify-between mt-2 text-xs">
-          <span className="text-[#e94560] font-bold">{match.prediction1}% {match.team1}</span>
-          <span className="text-[#00d4ff] font-bold">{match.prediction2}% {match.team2}</span>
+            <span className="text-[#e94560] font-bold">{match.prediction1}% {getTeamName(match, 'team1')}</span>
+            <span className="text-[#00d4ff] font-bold">{match.prediction2}% {getTeamName(match, 'team2')}</span>
         </div>
       </div>
 
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-500">{match.time}</span>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-[#0f1419] border border-gray-700 rounded-lg hover:border-[#e94560]/50 transition-colors">
-            View Hub
-          </button>
-          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-[#e94560] to-[#ff6b6b] rounded-lg hover:shadow-lg hover:shadow-[#e94560]/50 transition-all">
-            Predict
+          <button
+            onClick={(e) => { e.preventDefault(); onPredict?.(match.id) }}
+            disabled={!userId}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              userId
+                ? hasPredicted
+                  ? 'text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-lg hover:shadow-green-600/50'
+                  : 'text-white bg-gradient-to-r from-[#e94560] to-[#ff6b6b] hover:shadow-lg hover:shadow-[#e94560]/50'
+                : 'text-gray-500 bg-gray-700 cursor-not-allowed'
+            }`}
+          >
+            {!userId ? 'Login to predict' : hasPredicted ? 'Update Prediction' : 'Predict'}
           </button>
         </div>
       </div>
     </div>
+    </Link>
   )
 }
 
@@ -354,35 +593,37 @@ function MatchCard({ match }: { match: PredictionMatch }) {
 /* ========================================================================== */
 
 function ConsensusRow({ consensus }: { consensus: CommunityConsensus }) {
-  const confidenceColor = consensus.confidence === 'high' ? 'text-green-400 border-green-400/20 bg-green-400/10' : consensus.confidence === 'medium' ? 'text-yellow-400 border-yellow-400/20 bg-yellow-400/10' : 'text-gray-400 border-gray-400/20 bg-gray-400/10'
+const confidenceColor = consensus.confidence === 'high' ? 'text-green-400 border-green-400/20 bg-green-400/10' : consensus.confidence === 'medium' ? 'text-yellow-400 border-yellow-400/20 bg-yellow-400/10' : 'text-gray-400 border-gray-400/20 bg-gray-400/10'
 
   return (
-    <div className="px-5 py-4 hover:bg-[#1a1f2e]/60 transition-colors">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-3">
-          <span className="text-lg">{consensus.logo1}</span>
-          <span className="text-sm font-semibold text-white">{consensus.team1}</span>
-          <span className="text-xs text-gray-600 font-medium">vs</span>
-          <span className="text-sm font-semibold text-white">{consensus.team2}</span>
-          <span className="text-lg">{consensus.logo2}</span>
+    <Link href={`/match/${consensus.id}`} className="block">
+      <div className="px-5 py-4 hover:bg-[#1a1f2e]/60 transition-colors">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <TeamLogo logo={consensus.logo1} name={consensus.team1} size="sm" />
+            <span className="text-sm font-semibold text-white">{consensus.team1}</span>
+            <span className="text-xs text-gray-600 font-medium">vs</span>
+            <span className="text-sm font-semibold text-white">{consensus.team2}</span>
+            <TeamLogo logo={consensus.logo2} name={consensus.team2} size="sm" />
+          </div>
+          <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${confidenceColor}`}>
+            {consensus.confidence}
+          </span>
         </div>
-        <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${confidenceColor}`}>
-          {consensus.confidence}
-        </span>
-      </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-            <span>{consensus.totalPredictions.toLocaleString()} predictions</span>
-            <span>{consensus.percentage}% community pick</span>
-          </div>
-          <div className="w-full h-2 bg-[#0f1419] rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-[#e94560] to-[#ff6b6b] rounded-full" style={{ width: `${consensus.percentage}%` }} />
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+              <span>{consensus.totalPredictions.toLocaleString()} predictions</span>
+              <span>{consensus.percentage}% community pick</span>
+            </div>
+            <div className="w-full h-2 bg-[#0f1419] rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-[#e94560] to-[#ff6b6b] rounded-full" style={{ width: `${consensus.percentage}%` }} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -391,12 +632,18 @@ function ConsensusRow({ consensus }: { consensus: CommunityConsensus }) {
 /* ========================================================================== */
 
 function PredictionRow({ prediction }: { prediction: MyPrediction }) {
-  const statusConfig = {
+  const statusConfig: Record<MyPrediction['result'], string> = {
     correct: 'bg-green-400/10 text-green-400 border-green-400/20',
     incorrect: 'bg-red-400/10 text-red-400 border-red-400/20',
     pending: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20',
+    void: 'bg-gray-400/10 text-gray-300 border-gray-400/20',
   }
-  const statusLabel = { correct: 'Correct', incorrect: 'Incorrect', pending: 'Pending' }
+  const statusLabel: Record<MyPrediction['result'], string> = {
+    correct: 'Correct',
+    incorrect: 'Incorrect',
+    pending: 'Pending',
+    void: 'Void (Draw)',
+  }
 
   return (
     <div className="px-5 py-3.5 hover:bg-[#1a1f2e]/60 transition-colors">
@@ -407,12 +654,6 @@ function PredictionRow({ prediction }: { prediction: MyPrediction }) {
         </div>
         <div className="hidden md:block md:col-span-3 text-center">
           <span className="text-sm text-[#00d4ff] font-medium">{prediction.prediction}</span>
-        </div>
-        <div className="hidden md:flex md:col-span-2 items-center justify-center">
-          <div className="w-16 h-1.5 bg-[#0f1419] rounded-full overflow-hidden">
-            <div className="h-full bg-[#e94560] rounded-full" style={{ width: `${prediction.confidence}%` }} />
-          </div>
-          <span className="text-xs text-gray-400 ml-2">{prediction.confidence}%</span>
         </div>
         <div className="hidden md:flex md:col-span-2 items-center justify-center">
           <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusConfig[prediction.result]}`}>
@@ -437,83 +678,131 @@ function PredictionRow({ prediction }: { prediction: MyPrediction }) {
 /* Prediction Form                                                            */
 /* ========================================================================== */
 
-function PredictionForm() {
-  const [confidence, setConfidence] = useState(72)
+function PredictionForm({ matchId, onSuccess, userId }: { matchId?: string; onSuccess?: () => void; userId?: string }) {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const handleSubmit = async () => {
+    if (!selectedTeam || !matchId) {
+      return
+    }
+    if (!userId) {
+      setShowLoginPrompt(true)
+      return
+    }
+    setSubmitting(true)
+    setSubmitError(null)
+    const result = await submitPrediction(
+      matchId,
+      selectedTeam === 'team1'
+    )
+    if (!result.success) {
+      setSubmitError(result.error || 'Failed to submit prediction')
+    } else if (onSuccess) {
+      onSuccess()
+    }
+    setSubmitting(false)
+    setSelectedTeam(null)
+  }
 
   return (
-    <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-[#e94560]/30 rounded-xl p-6 md:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="text-center">
-            <span className="text-3xl block mb-1">🔥</span>
-            <p className="text-sm font-bold text-white">Spirit</p>
+    <>
+      <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-[#e94560]/30 rounded-xl p-6 md:p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <span className="text-3xl block mb-1">🔥</span>
+              <p className="text-sm font-bold text-white">Spirit</p>
+            </div>
+            <span className="text-lg font-black text-gray-600">VS</span>
+            <div className="text-center">
+              <span className="text-3xl block mb-1">⚡</span>
+              <p className="text-sm font-bold text-white">FaZe</p>
+            </div>
           </div>
-          <span className="text-lg font-black text-gray-600">VS</span>
-          <div className="text-center">
-            <span className="text-3xl block mb-1">⚡</span>
-            <p className="text-sm font-bold text-white">FaZe</p>
-          </div>
+          <div className="text-xs text-gray-500">ESL Pro League S21</div>
         </div>
-        <span className="text-xs text-gray-500">ESL Pro League S21</span>
+
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">Select your prediction</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setSelectedTeam('team1')}
+                className={`py-3 rounded-lg text-sm font-semibold transition-all border ${
+                  selectedTeam === 'team1'
+                    ? 'bg-[#e94560]/10 border-[#e94560] text-[#e94560]'
+                    : 'bg-[#0f1419] border-gray-700 text-gray-400 hover:border-gray-600'
+                }`}
+              >
+                Spirit wins
+              </button>
+              <button
+                onClick={() => setSelectedTeam('team2')}
+                className={`py-3 rounded-lg text-sm font-semibold transition-all border ${
+                  selectedTeam === 'team2'
+                    ? 'bg-[#00d4ff]/10 border-[#00d4ff] text-[#00d4ff]'
+                    : 'bg-[#0f1419] border-gray-700 text-gray-400 hover:border-gray-600'
+                }`}
+              >
+                FaZe wins
+              </button>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={!selectedTeam || submitting}
+            className={`w-full py-3.5 rounded-lg font-bold transition-all ${
+              selectedTeam && !submitting
+                ? 'bg-gradient-to-r from-[#e94560] to-[#ff6b6b] text-white hover:shadow-lg hover:shadow-[#e94560]/50 hover:scale-[1.02] active:scale-[0.98]'
+                : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {submitting ? 'Submitting...' : 'Submit Prediction'}
+          </button>
+
+          {submitError && (
+            <p className="mt-3 text-sm text-red-400">{submitError}</p>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-3">Select your prediction</label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => setSelectedTeam('team1')}
-              className={`py-3 rounded-lg text-sm font-semibold transition-all border ${
-                selectedTeam === 'team1'
-                  ? 'bg-[#e94560]/10 border-[#e94560] text-[#e94560]'
-                  : 'bg-[#0f1419] border-gray-700 text-gray-400 hover:border-gray-600'
-              }`}
-            >
-              Spirit wins
-            </button>
-            <button
-              onClick={() => setSelectedTeam('team2')}
-              className={`py-3 rounded-lg text-sm font-semibold transition-all border ${
-                selectedTeam === 'team2'
-                  ? 'bg-[#00d4ff]/10 border-[#00d4ff] text-[#00d4ff]'
-                  : 'bg-[#0f1419] border-gray-700 text-gray-400 hover:border-gray-600'
-              }`}
-            >
-              FaZe wins
-            </button>
+      {showLoginPrompt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1a1f2e] border border-gray-700 rounded-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-white mb-4">Login Required</h3>
+            <p className="text-gray-400 mb-6">Please log in to submit predictions.</p>
+            <div className="flex gap-3">
+              <Link href="/login" className="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#e94560] to-[#ff6b6b] rounded hover:shadow-lg hover:shadow-[#e94560]/50 transition-all text-center" onClick={() => setShowLoginPrompt(false)}>
+                Login
+              </Link>
+              <button onClick={() => setShowLoginPrompt(false)} className="flex-1 px-4 py-2 text-sm font-medium text-gray-300 border border-gray-600 rounded hover:bg-[#0f1419] transition-colors">
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
+      )}
+    </>
+  )
+}
 
-        <div>
-          <div className="flex items-center justify-between text-sm mb-3">
-            <label className="text-gray-300 font-medium">Confidence</label>
-            <span className="text-[#e94560] font-bold">{confidence}%</span>
-          </div>
-          <input
-            type="range"
-            min="50"
-            max="100"
-            value={confidence}
-            onChange={(e) => setConfidence(Number(e.target.value))}
-            className="w-full h-2 bg-[#0f1419] rounded-full appearance-none cursor-pointer accent-[#e94560]"
-          />
-          <div className="flex items-center justify-between text-[10px] text-gray-600 mt-1">
-            <span>50%</span>
-            <span>100%</span>
-          </div>
+function PredictionModal({ matchId, onClose, onSuccess, userId }: { matchId: string; onClose: () => void; onSuccess: () => void; userId?: string }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#1a1f2e] border border-gray-700 rounded-xl max-w-lg w-full">
+        <div className="flex items-center justify-between p-5 border-b border-gray-700">
+          <h3 className="text-lg font-bold text-white">Submit Prediction</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            ✕
+          </button>
         </div>
-
-        <button
-          disabled={!selectedTeam}
-          className={`w-full py-3.5 rounded-lg font-bold transition-all ${
-            selectedTeam
-              ? 'bg-gradient-to-r from-[#e94560] to-[#ff6b6b] text-white hover:shadow-lg hover:shadow-[#e94560]/50 hover:scale-[1.02] active:scale-[0.98]'
-              : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-          }`}
-        >
-          Submit Prediction
-        </button>
+        <div className="p-5">
+          <PredictionForm matchId={matchId} onSuccess={() => { onClose(); onSuccess(); }} userId={userId} />
+        </div>
       </div>
     </div>
   )

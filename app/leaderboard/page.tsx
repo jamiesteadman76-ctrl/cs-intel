@@ -1,25 +1,109 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import {
-  leaderboardStats,
-  leaderboardUsers,
-  analystOfTheWeek,
-  risingStars,
-  recentAchievements,
-  leaderboardRules,
-  scoreComponents,
-} from '@/lib/data'
+import { getLeaderboard, getPredictions } from '@/lib/api'
+import type { LeaderboardEntry } from '@/lib/api'
 import type { LeaderboardUser } from '@/lib/types'
 
 const tabs = ['Overall', 'Top Predictors', 'Top Analysts', 'Rising Stars'] as const
 type Tab = typeof tabs[number]
 
+const leaderboardRules = [
+  { title: 'Prediction Accuracy', description: 'Correct predictions earn +10 points, incorrect lose 2. Confidence bonuses apply.' },
+  { title: 'Intel Score', description: 'Your total points determine your rank. Higher scores climb the leaderboard.' },
+  { title: 'Active Participation', description: 'Regular predictions keep your streak alive and boost your score.' },
+]
+
+const scoreComponents = [
+  { label: 'Correct Prediction', description: '+10 base points', icon: '✓' },
+  { label: 'High Confidence Bonus', description: '+2 points (90%+)', icon: '🔥' },
+  { label: 'Medium Confidence', description: '+1 point (70-89%)', icon: '⭐' },
+  { label: 'Incorrect Prediction', description: '-2 points', icon: '✗' },
+]
+
 export default function LeaderboardPage() {
   const [activeTab, setActiveTab] = useState<Tab>('Overall')
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [leaderboardStats, setLeaderboardStats] = useState({
+    totalMembers: 0,
+    totalPredictions: 0,
+    averageAccuracy: 0,
+    activeAnalysts: 0,
+  })
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [leaderboardData, predictionsData] = await Promise.all([
+          getLeaderboard(),
+          getPredictions(),
+        ])
+        
+        setLeaderboard(leaderboardData)
+        
+        const completedPredictions = predictionsData.filter((p) => p.result !== 'pending')
+        const correctCount = completedPredictions.filter((p) => p.result === 'correct').length
+        const totalAccuracy = completedPredictions.length > 0
+          ? Math.round((correctCount / completedPredictions.length) * 100)
+          : 0
+        
+        setLeaderboardStats({
+          totalMembers: leaderboardData.length,
+          totalPredictions: predictionsData.length,
+          averageAccuracy: totalAccuracy,
+          activeAnalysts: leaderboardData.filter((u) => u.predictions > 0).length,
+        })
+      } catch (error) {
+        console.error('Error fetching leaderboard data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [])
+
+  const risingStars = leaderboard
+    .filter((u) => u.predictions > 0 && u.intelScore > 0 && u.predictions <= 20)
+    .sort((a, b) => b.accuracy - a.accuracy)
+    .slice(0, 6)
+    .sort((a, b) => b.intelScore - a.intelScore)
+    .slice(0, 6)
+    .map((u) => ({
+      id: u.id,
+      username: u.username,
+      avatar: u.avatar,
+      joinedDate: 'Recent',
+      scoreGained: u.intelScore,
+      accuracy: u.accuracy,
+    }))
+
+  const leaderboardUsers: LeaderboardUser[] = leaderboard.map((entry) => ({
+    id: entry.id,
+    rank: entry.rank,
+    username: entry.username,
+    avatar: entry.avatar,
+    intelScore: entry.intelScore,
+    accuracy: entry.accuracy,
+    predictions: entry.predictions,
+    posts: 0,
+    comments: 0,
+    streak: entry.streak,
+    change: 0,
+    joinedDate: '',
+  }))
+
+  if (loading) {
+    return (
+      <div className="bg-[#0f1419] text-gray-100 min-h-screen flex items-center justify-center">
+        <p className="text-xl text-gray-400">Loading leaderboard...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-[#0f1419] text-gray-100 min-h-screen">
@@ -113,26 +197,6 @@ export default function LeaderboardPage() {
                       </div>
                     </div>
                   ))}
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-6">Recent Achievements</h2>
-                <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-lg p-5 md:p-6">
-                  <div className="relative">
-                    <div className="absolute left-[15px] top-2 bottom-2 w-px bg-gray-800"></div>
-                    <div className="space-y-5">
-                      {recentAchievements.map((ach) => (
-                        <div key={ach.id} className="flex items-start gap-4 relative">
-                          <div className="w-8 h-8 rounded-full bg-[#e94560]/10 border border-[#e94560]/30 flex items-center justify-center text-sm flex-shrink-0 z-10">{ach.avatar}</div>
-                          <div className="flex-1 pt-1">
-                            <p className="text-sm text-white"><span className="font-semibold">{ach.username}</span> unlocked <span className="text-[#00d4ff] font-medium">{ach.achievement}</span></p>
-                            <p className="text-[10px] text-gray-500 mt-0.5">{ach.timestamp}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </section>
             </div>

@@ -53,8 +53,16 @@ export function createSupabaseServer(cookieStore: {
   })
 }
 
-export async function getUserProfile(userId: string): Promise<{ is_admin: boolean } | null> {
-  const { data, error } = await supabase
+export async function getUserProfile(
+  sb: SupabaseClient | undefined,
+  userId: string
+): Promise<{ is_admin: boolean } | null> {
+  // Falls back to the global browser client for backward compatibility with
+  // any callers that don't have a request-scoped client. Server-side callers
+  // (e.g. requireAdmin) MUST pass their cookie-bound server client so the
+  // read runs under the request's authenticated RLS context.
+  const client = sb ?? supabase
+  const { data, error } = await client
     .from('users')
     .select('is_admin')
     .eq('id', userId)

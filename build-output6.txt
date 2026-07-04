@@ -1,0 +1,161 @@
+﻿  Ôû▓ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/21) ...
+node.exe :  ÔÜá Unsupported metadata viewport is configured in metadata export in /_not-found. Please move it to 
+viewport export instead.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Percy Jay\AppData\Roam ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( ÔÜá Unsupporte...export instead.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /_not-found. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /blog. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /blog. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /about. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /about. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /contact. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /contact. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /community. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+   Generating static pages (5/21) 
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /community. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /disclaimer. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /disclaimer. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /leaderboard. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /leaderboard. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /login. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /predictions. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /predictions. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /login. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+   Generating static pages (10/21) 
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /privacy. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /privacy. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /profile. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /profile. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /rankings. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /rankings. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /signup. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /signup. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /schedule. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /schedule. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /terms. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /terms. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+   Generating static pages (15/21) 
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /test-supabase. Please move it to viewport 
+export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /test-supabase. Please move it to viewport 
+export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /admin. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /admin. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /matches. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ÔÜá Unsupported metadata viewport is configured in metadata export in /matches. Please move it to viewport export 
+instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ Ô£ô Generating static pages (21/21)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Ôöî Ôùï /                                    2.06 kB         159 kB
+Ôö£ Ôùï /_not-found                          873 B          88.2 kB
+Ôö£ Ôùï /about                               2.06 kB         159 kB
+Ôö£ Ôùï /admin                               6.45 kB         171 kB
+Ôö£ Ôùï /blog                                2.06 kB         159 kB
+Ôö£ Ôùï /community                           4.44 kB         169 kB
+Ôö£ Ôùï /contact                             2.39 kB         162 kB
+Ôö£ Ôùï /disclaimer                          2.06 kB         159 kB
+Ôö£ Ôùï /leaderboard                         5.34 kB         165 kB
+Ôö£ Ôùï /login                               1.14 kB         161 kB
+Ôö£ Ôùï /matches                             2.06 kB         159 kB
+Ôö£ Ôùï /predictions                         7.54 kB         167 kB
+Ôö£ Ôùï /privacy                             2.06 kB         159 kB
+Ôö£ Ôùï /profile                             5 kB            164 kB
+Ôö£ Ôùï /rankings                            3.37 kB         168 kB
+Ôö£ Ôùï /schedule                            3.18 kB         168 kB
+Ôö£ Ôùï /signup                              1.16 kB         161 kB
+Ôö£ Ôùï /terms                               2.06 kB         159 kB
+Ôöö Ôùï /test-supabase                       800 B           149 kB
++ First Load JS shared by all            87.3 kB
+  Ôö£ chunks/117-fc73271fc24037f1.js       31.7 kB
+  Ôö£ chunks/fd9d1056-5f55067fad1d0619.js  53.6 kB
+  Ôöö other shared chunks (total)          1.95 kB
+
+
+Ôùï  (Static)  prerendered as static content
+

@@ -1,10 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useUser } from '@/lib/auth/useUser'
+import { signOut } from '@/lib/auth/supabaseAuth'
+import { supabase } from '@/lib/supabase'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { user, loading } = useUser()
+  const [userProfile, setUserProfile] = useState<{ username: string } | null>(null)
+
+  useEffect(() => {
+    if (!user) {
+      setUserProfile(null)
+      return
+    }
+    Promise.resolve(
+      supabase
+        .from('users')
+        .select('username')
+        .eq('id', user.id)
+        .maybeSingle()
+    ).then(({ data }) => {
+      setUserProfile(data)
+    }).catch(() => {
+      setUserProfile(null)
+    })
+  }, [user])
 
   const navItems = [
     { label: 'Home', href: '/' },
@@ -15,6 +38,12 @@ export default function Header() {
     { label: 'Leaderboard', href: '/leaderboard' },
     { label: 'Community', href: '/community' },
   ]
+
+  const handleSignOut = async () => {
+    await signOut()
+  }
+
+  const username = userProfile?.username ?? user?.email?.split('@')[0] ?? 'User'
 
   return (
     <header className="sticky top-0 z-50 bg-[#0a0d12] border-b border-gray-800">
@@ -45,18 +74,30 @@ export default function Header() {
 
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/profile" className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-[#1a1f2e] rounded transition-colors">
-              Profile
-            </Link>
-            <Link href="/blog" className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-[#1a1f2e] rounded transition-colors">
-              Blog
-            </Link>
-            <Link href="/login" className="px-6 py-2 text-sm font-medium text-white border border-gray-600 rounded hover:border-gray-400 hover:bg-[#1a1f2e] transition-colors">
-              Login
-            </Link>
-            <Link href="/signup" className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#e94560] to-[#ff6b6b] rounded hover:shadow-lg hover:shadow-[#e94560]/50 transition-all">
-              Sign Up
-            </Link>
+            {!loading && user && (
+              <>
+                <span className="text-sm font-medium text-gray-300">{username}</span>
+                <Link href="/profile" className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-[#1a1f2e] rounded transition-colors">
+                  Profile
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="px-6 py-2 text-sm font-medium text-white border border-gray-600 rounded hover:border-gray-400 hover:bg-[#1a1f2e] transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+            {!loading && !user && (
+              <>
+                <Link href="/login" className="px-6 py-2 text-sm font-medium text-white border border-gray-600 rounded hover:border-gray-400 hover:bg-[#1a1f2e] transition-colors">
+                  Login
+                </Link>
+                <Link href="/signup" className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#e94560] to-[#ff6b6b] rounded hover:shadow-lg hover:shadow-[#e94560]/50 transition-all">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -101,12 +142,24 @@ export default function Header() {
               <Link href="/profile" className="px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white hover:bg-[#1a1f2e] rounded transition-colors" onClick={() => setMobileMenuOpen(false)}>Profile</Link>
             </nav>
             <div className="flex flex-col gap-3 mt-4">
-              <Link href="/login" className="px-6 py-2.5 text-sm font-medium text-white border border-gray-600 rounded hover:border-gray-400 hover:bg-[#1a1f2e] transition-colors text-center" onClick={() => setMobileMenuOpen(false)}>
-                Login
-              </Link>
-              <Link href="/signup" className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#e94560] to-[#ff6b6b] rounded hover:shadow-lg hover:shadow-[#e94560]/50 transition-all text-center" onClick={() => setMobileMenuOpen(false)}>
-                Sign Up
-              </Link>
+              {!loading && user && (
+                <button
+                  onClick={handleSignOut}
+                  className="px-6 py-2.5 text-sm font-medium text-white border border-gray-600 rounded hover:border-gray-400 hover:bg-[#1a1f2e] transition-colors text-center"
+                >
+                  Logout
+                </button>
+              )}
+              {!loading && !user && (
+                <>
+                  <Link href="/login" className="px-6 py-2.5 text-sm font-medium text-white border border-gray-600 rounded hover:border-gray-400 hover:bg-[#1a1f2e] transition-colors text-center" onClick={() => setMobileMenuOpen(false)}>
+                    Login
+                  </Link>
+                  <Link href="/signup" className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#e94560] to-[#ff6b6b] rounded hover:shadow-lg hover:shadow-[#e94560]/50 transition-all text-center" onClick={() => setMobileMenuOpen(false)}>
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

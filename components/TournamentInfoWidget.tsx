@@ -1,12 +1,23 @@
+import Link from 'next/link'
 import type { MatchTournament } from '@/lib/types'
 
 interface TournamentInfoWidgetProps {
   tournament: MatchTournament
 }
 
+function formatSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
 export default function TournamentInfoWidget({
   tournament,
 }: TournamentInfoWidgetProps) {
+  const tournamentSlug = formatSlug(tournament.name)
   return (
     <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-lg p-6 mb-6 sticky top-24">
       <h3 className="text-lg font-bold text-white mb-6">Tournament Info</h3>
@@ -39,9 +50,9 @@ export default function TournamentInfoWidget({
         </div>
       </div>
 
-      <button className="w-full mt-6 py-2 px-4 bg-gradient-to-r from-[#e94560] to-[#ff6b6b] text-white font-semibold rounded text-sm hover:shadow-lg hover:shadow-[#e94560]/50 transition-all">
+      <Link href={`/tournament/${tournamentSlug}`} className="block w-full mt-6 py-2 px-4 bg-gradient-to-r from-[#e94560] to-[#ff6b6b] text-white font-semibold rounded text-sm hover:shadow-lg hover:shadow-[#e94560]/50 transition-all text-center">
         View Tournament
-      </button>
+      </Link>
     </div>
   )
 }

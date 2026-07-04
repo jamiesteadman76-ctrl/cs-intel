@@ -1,0 +1,32 @@
+﻿  Ôû▓ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Linting and checking validity of types ...
+node.exe : Failed to compile.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Percy Jay\AppData\Roam ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Failed to compile.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+./app/admin/page.tsx:200:20
+Type error: Cannot find name 'quickActions'.
+
+[0m [90m 198 |[39m                 [33m<[39m[33mh2[39m className[33m=[39m[32m"text-xl font-bold text-white 
+mb-4"[39m[33m>[39m[33mQuick[39m [33mActions[39m[33m<[39m[33m/[39m[33mh2[39m[33m>[39m[0m
+[0m [90m 199 |[39m                 [33m<[39m[33mdiv[39m className[33m=[39m[32m"grid grid-cols-2 
+md:grid-cols-3 gap-3"[39m[33m>[39m[0m
+[0m[31m[1m>[22m[39m[90m 200 |[39m                   {quickActions[33m.[39mmap(action [33m=>[39m ([0m
+[0m [90m     |[39m                    [31m[1m^[22m[39m[0m
+[0m [90m 201 |[39m                     [33m<[39m[33ma[39m key[33m=[39m{action[33m.[39mtitle} 
+href[33m=[39m{action[33m.[39mhref} className[33m=[39m[32m"bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border 
+border-gray-700 rounded-lg p-4 hover:border-[#e94560]/40 transition-all group"[39m[33m>[39m[0m
+[0m [90m 202 |[39m                       [33m<[39m[33mdiv[39m className[33m=[39m[32m"text-2xl 
+mb-2"[39m[33m>[39m{action[33m.[39micon}[33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+[0m [90m 203 |[39m                       [33m<[39m[33mp[39m className[33m=[39m[32m"text-sm font-semibold 
+text-white group-hover:text-[#e94560] 
+transition-colors"[39m[33m>[39m{action[33m.[39mtitle}[33m<[39m[33m/[39m[33mp[39m[33m>[39m[0m
+Next.js build worker exited with code: 1 and signal: null

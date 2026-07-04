@@ -1,0 +1,27 @@
+﻿  Ôû▓ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Linting and checking validity of types ...
+node.exe : Failed to compile.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Percy Jay\AppData\Roam ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Failed to compile.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+./app/admin/page.tsx:21:3
+Type error: Module '"@/lib/api"' has no exported member 'AdminStat'.
+
+[0m [90m 19 |[39m [36mimport[39m { setMatchResult[33m,[39m getAllPredictions[33m,[39m 
+getUsersWithStats[33m,[39m recalculateAllIntelScores[33m,[39m getMatchAccuracyStats } [36mfrom[39m 
+[32m'@/lib/api'[39m[0m
+[0m [90m 20 |[39m [36mimport[39m type {[0m
+[0m[31m[1m>[22m[39m[90m 21 |[39m   [33mAdminStat[39m[33m,[39m[0m
+[0m [90m    |[39m   [31m[1m^[22m[39m[0m
+[0m [90m 22 |[39m   [33mQuickAction[39m[33m,[39m[0m
+[0m [90m 23 |[39m   [33mAdminActivity[39m[33m,[39m[0m
+[0m [90m 24 |[39m   [33mAdminBlogPost[39m[33m,[39m[0m
+Next.js build worker exited with code: 1 and signal: null

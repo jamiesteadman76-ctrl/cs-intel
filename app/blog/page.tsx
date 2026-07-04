@@ -1,11 +1,72 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { blogPosts } from '@/lib/data'
+import { getBlogPosts } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 import type { BlogPost } from '@/lib/types'
 
 const categories = ['Analysis', 'Betting', 'Teams', 'Meta'] as const
 
 export default function BlogPage() {
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const postsData = await getBlogPosts(supabase, true)
+
+        const transformedPosts: BlogPost[] = postsData.map(post => ({
+          id: post.id,
+          title: post.title,
+          category: post.category as BlogPost['category'],
+          preview: post.preview || '',
+          date: post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }) : 'Recent',
+          readTime: post.read_time ? `${post.read_time} min` : '5 min',
+          featured: post.featured || false,
+          views: post.views || 0
+        }))
+
+        setBlogPosts(transformedPosts)
+        setError(null)
+      } catch (err) {
+        console.error('Failed to fetch blog posts:', err)
+        setError(err instanceof Error ? err.message : 'Unknown error')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="bg-[#0f1419] text-gray-100 min-h-screen">
+        <Header />
+        <main>
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-white mb-4">Loading Blog...</h2>
+              <p className="text-gray-400">Fetching latest articles...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
   const featured = blogPosts.find((p) => p.featured)
   const rest = blogPosts.filter((p) => !p.featured)
 
@@ -77,10 +138,6 @@ export default function BlogPage() {
                           </div>
                           <span className="text-sm text-gray-400">By CS Intel Team</span>
                         </div>
-                        <button className="text-sm font-semibold text-[#e94560] hover:text-[#ff6f6b] transition-colors group/btn">
-                          Read Article
-                          <span className="inline-block transition-transform group-hover/btn:translate-x-0.5">→</span>
-                        </button>
                       </div>
                     </div>
                   </article>

@@ -28,71 +28,26 @@ export default function ContactPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
             {/* ========== FORM (2 cols) ========== */}
-            <div className="lg:col-span-2">
-              <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-xl p-6 md:p-8">
-                <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
-                  {/* Name + Email row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">Name</label>
-                      <input
-                        id="name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Your name"
-                        className="w-full px-4 py-3 bg-[#0f1419] border border-gray-700 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#e94560]/50 focus:ring-1 focus:ring-[#e94560]/50 transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-                      <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="w-full px-4 py-3 bg-[#0f1419] border border-gray-700 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#e94560]/50 focus:ring-1 focus:ring-[#e94560]/50 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Subject */}
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-2">Subject</label>
-                    <input
-                      id="subject"
-                      type="text"
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      placeholder="What's this about?"
-                      className="w-full px-4 py-3 bg-[#0f1419] border border-gray-700 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#e94560]/50 focus:ring-1 focus:ring-[#e94560]/50 transition-all"
-                    />
-                  </div>
-
-                  {/* Message */}
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">Message</label>
-                    <textarea
-                      id="message"
-                      rows={6}
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Tell us what's on your mind..."
-                      className="w-full px-4 py-3 bg-[#0f1419] border border-gray-700 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#e94560]/50 focus:ring-1 focus:ring-[#e94560]/50 transition-all resize-y"
-                    />
-                  </div>
-
-                  {/* Submit */}
-                  <button
-                    type="submit"
-                    className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#e94560] to-[#ff6f6b] text-white font-bold rounded-lg hover:shadow-lg hover:shadow-[#e94560]/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    Send Message
-                  </button>
-                </form>
-              </div>
+          <div className="lg:col-span-2">
+            <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0f1419] border border-gray-700 rounded-xl p-6 md:p-8">
+              <h2 className="text-2xl font-bold text-white mb-3">Get In Touch</h2>
+              <p className="text-gray-400 mb-6 leading-relaxed">
+                Use the email below to reach the CS Intel team directly. We read every message and typically reply within 24 hours.
+              </p>
+              <a
+                href="mailto:support@csintel.gg?subject=CS%20Intel%20Contact"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#e94560] to-[#ff6f6b] text-white font-bold rounded-lg hover:shadow-lg hover:shadow-[#e94560]/50 transition-all hover:scale-105"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Email support@csintel.gg
+              </a>
+              <p className="text-xs text-gray-500 mt-4">
+                Community Discord: <span className="text-[#00d4ff]">discord.gg/csintel</span>
+              </p>
             </div>
+          </div>
 
             {/* ========== SIDE INFO ========== */}
             <div className="space-y-6">

@@ -1,5 +1,16 @@
-import type { Match, IntelPost, CommunityActivity, Ranking, CommunityComment, CommunityPrediction, IntelUpdate, MatchTournament, CommunityDiscussion, CommunityPost, TopContributor, CommunityCategory, CommunityStats, CommunityTag, NewMember, ProfileStats, ProfileActivity, PredictionHistory, TopAnalysisPost, ReputationSource, Achievement, FavoriteTeam, RecentFollower, CommunityStanding, ScheduleMatch, QuickStat, RankingTeam, RankingMover, RankingUpcoming, BlogPost, LeaderboardUser, LeaderboardStats, RisingStar, RecentAchievement, LeaderboardRule, ScoreComponent, PredictionMatch, CommunityConsensus, TopPredictor, MyPrediction, RecentCommunityPick, PredictionRule, SeasonStat, AdminStat, QuickAction, AdminActivity, AdminBlogPost, AdminIntelPost, AdminDiscussion, ReportItem, AdminMatch, AnalyticsCard, AdminNote, PlatformStatus, Alert } from './types'
+﻿import type { Match, IntelPost, CommunityActivity, Ranking, CommunityComment, CommunityPrediction, IntelUpdate, MatchTournament, CommunityPost, TopContributor, CommunityCategory, CommunityStats, CommunityTag, NewMember, ProfileStats, ProfileActivity, PredictionHistory, TopAnalysisPost, ReputationSource, Achievement, FavoriteTeam, RecentFollower, CommunityStanding, RankingTeam, RankingMover, RankingUpcoming, BlogPost, LeaderboardUser, LeaderboardStats, RisingStar, RecentAchievement, LeaderboardRule, ScoreComponent, PredictionMatch, CommunityConsensus, TopPredictor, MyPrediction, RecentCommunityPick, PredictionRule, SeasonStat, AdminStat, QuickAction, AdminActivity, AdminBlogPost, AdminIntelPost, AdminDiscussion, ReportItem, AdminMatch, AnalyticsCard, AdminNote, PlatformStatus, Alert } from './types'
 
+// All arrays below are transitional mock data pending DB integration.
+// TODO: Replace with real database queries once backend endpoints are ready.
+// See: SYSTEM_INTELLIGENCE.md and docs/mock-data-elimination-guide.md
+
+// ============================================================================
+// MOCK DATA - TO BE REPLACED
+// ============================================================================
+
+// TODO: Replace matches[] - awaiting DB seed and API endpoint
+// Used by: app/page.tsx, components/MatchCard.tsx
+// DB table: matches (team1_id, team2_id, tournament_id)
 export const matches: Match[] = [
   {
     id: '1',
@@ -29,64 +40,34 @@ export const matches: Match[] = [
   },
 ]
 
+// TODO: Replace featuredMatch - awaiting DB endpoint /api/matches?featured=true
+// Used by: app/page.tsx (FeaturedMatch section)
+// DB table: matches (team1_id, team2_id, tournament_id)
 export const featuredMatch: Match = {
   id: 'featured',
-  team1: { name: 'FaZe Clan', logo: '🔥' },
-  team2: { name: 'NAVI', logo: '⚡' },
-  team1Players: [
-    { id: 'p1', name: 'ropz', avatar: '👤', rating: 1.18, kd: 1.24, recentForm: ['✓', '✓', '✗', '✓', '✓'] },
-    { id: 'p2', name: 'frozen', avatar: '👤', rating: 1.16, kd: 1.21, recentForm: ['✓', '✓', '✓', '✓', '✗'] },
-  ],
-  team2Players: [
-    { id: 'p3', name: 's1mple', avatar: '👤', rating: 1.31, kd: 1.35, recentForm: ['✓', '✓', '✓', '✓', '✓'] },
-    { id: 'p4', name: 'Perfecto', avatar: '👤', rating: 1.09, kd: 1.12, recentForm: ['✓', '✗', '✓', '✓', '✓'] },
-  ],
-  time: 'Today 18:00 UTC',
+  team1: { name: 'Spirit', logo: '🔥' },
+  team2: { name: 'FaZe', logo: '⚡' },
+  team1Players: [],
+  team2Players: [],
+  time: 'Yesterday 18:00 UTC',
   tournament: 'ESL Pro League Season 21 Finals',
   sentiment: 72,
   prediction1: 58,
   prediction2: 42,
   evidenceScore: 8.4,
-  status: 'upcoming',
-  recentForm1: ['✓', '✓', '✗', '✓', '✓'],
-  recentForm2: ['✓', '✓', '✓', '✗', '✓'],
-  mapPoolAdvantage: 'FaZe: +35%',
+  status: 'completed',
+  result: 'team1_win',
+  recentForm1: [],
+  recentForm2: [],
+  mapPoolAdvantage: '',
   headToHeadWins1: 12,
   headToHeadWins2: 8,
-  reasons: ['Better recent form', 'Stronger map pool', 'Higher ranked players', 'Won previous meeting'],
+  reasons: [],
 }
 
-export const intelPosts: IntelPost[] = [
-  {
-    id: '1',
-    title: 'FaZe Clan announces roster strengthening ahead of Major',
-    category: 'roster-change',
-    timestamp: '2 hours ago',
-    comments: 124,
-  },
-  {
-    id: '2',
-    title: 'NAVI dominates Mirage with 77% win rate this season',
-    category: 'team-form',
-    timestamp: '4 hours ago',
-    comments: 89,
-  },
-  {
-    id: '3',
-    title: 'PGL Major 2024 bracket announced - Full schedule inside',
-    category: 'tournament',
-    timestamp: '6 hours ago',
-    comments: 234,
-  },
-  {
-    id: '4',
-    title: 'Market odds shift: Vitality drops to 1.85 after recent loss',
-    category: 'betting',
-    timestamp: '8 hours ago',
-    comments: 156,
-  },
-]
-
+// TODO: Replace communityActivity[] - awaiting DB integration
+// Used by: app/page.tsx (Community Activity section)
+// DB table: community_activity
 export const communityActivity: CommunityActivity[] = [
   {
     id: '1',
@@ -119,6 +100,9 @@ export const communityActivity: CommunityActivity[] = [
   },
 ]
 
+// TODO: Replace rankings[] - awaiting DB integration
+// Used by: app/page.tsx (Top Teams section), components/RankingItem.tsx
+// DB table: team_rankings (future)
 export const rankings: Ranking[] = [
   {
     rank: 1,
@@ -152,6 +136,8 @@ export const rankings: Ranking[] = [
   },
 ]
 
+// TODO: Replace communityComments[] - DB table: comments (awaiting real integration)
+// Used by: (currently unused in active pages)
 export const communityComments: CommunityComment[] = [
   {
     id: '1',
@@ -205,71 +191,35 @@ export const communityPredictions: CommunityPrediction[] = [
     id: '1',
     username: 'ClutchKing',
     prediction: 'FaZe 2-0',
-    confidence: 85,
     timestamp: '2 hours ago',
   },
   {
     id: '2',
     username: 'EcoMaster',
     prediction: 'FaZe 2-1',
-    confidence: 72,
     timestamp: '1 hour ago',
   },
   {
     id: '3',
     username: 'EntryFrag',
     prediction: 'NAVI 2-1',
-    confidence: 68,
     timestamp: '50 minutes ago',
   },
   {
     id: '4',
     username: 'S1mpleFan',
     prediction: 'NAVI 2-0',
-    confidence: 45,
     timestamp: '35 minutes ago',
   },
   {
     id: '5',
     username: 'BetAnalyzer',
     prediction: 'FaZe 2-1',
-    confidence: 78,
     timestamp: '20 minutes ago',
   },
 ]
 
-export const intelUpdates: IntelUpdate[] = [
-  {
-    id: '1',
-    content: 'FaZe Clan have won 5 of their last 6 matches on Inferno.',
-    timestamp: '3 hours ago',
-    icon: '📈',
-  },
-  {
-    id: '2',
-    content: 'NAVI shifted their Mirage strategy after last tournament.',
-    timestamp: '2 hours ago',
-    icon: '🔄',
-  },
-  {
-    id: '3',
-    content: 'Bookmakers shortened FaZe from 1.92 to 1.85.',
-    timestamp: '1 hour ago',
-    icon: '💰',
-  },
-  {
-    id: '4',
-    content: 'ropz rated as top 10 player in ESL Pro League standings.',
-    timestamp: '50 minutes ago',
-    icon: '⭐',
-  },
-  {
-    id: '5',
-    content: 's1mple\'s rating has improved 0.08 points this month.',
-    timestamp: '30 minutes ago',
-    icon: '📊',
-  },
-]
+
 
 export const relatedMatches: Match[] = [
   {
@@ -361,6 +311,9 @@ export const matchTournament: MatchTournament = {
   teamCount: 8,
 }
 
+// TODO: Replace communityStats{} - awaiting DB integration
+// Used by: app/community/page.tsx (Stats Grid)
+// DB tables: users, community_activity
 export const communityStats: CommunityStats = {
   totalMembers: 48750,
   activeUsers: 1243,
@@ -368,64 +321,13 @@ export const communityStats: CommunityStats = {
   commentsToday: 2891,
 }
 
-export const communityDiscussions: CommunityDiscussion[] = [
-  {
-    id: '1',
-    title: 'Is Spirit overrated at current odds?',
-    replies: 156,
-    views: 8420,
-    upvotes: 447,
-    lastActivity: '3 min ago',
-  },
-  {
-    id: '2',
-    title: 'Best underdog pick of the day?',
-    replies: 89,
-    views: 5230,
-    upvotes: 312,
-    lastActivity: '12 min ago',
-  },
-  {
-    id: '3',
-    title: 'Can FaZe win the Major?',
-    replies: 234,
-    views: 12400,
-    upvotes: 678,
-    lastActivity: '28 min ago',
-  },
-  {
-    id: '4',
-    title: 'Most improved player of 2026?',
-    replies: 178,
-    views: 9100,
-    upvotes: 523,
-    lastActivity: '45 min ago',
-  },
-  {
-    id: '5',
-    title: 'Map veto analysis for Vitality vs Liquid',
-    replies: 67,
-    views: 3800,
-    upvotes: 189,
-    lastActivity: '1 hour ago',
-  },
-  {
-    id: '6',
-    title: 'Odds movement thread - Major qualifiers',
-    replies: 245,
-    views: 15600,
-    upvotes: 891,
-    lastActivity: '2 hours ago',
-  },
-]
-
 export const communityCategories: CommunityCategory[] = [
-  { id: '1', name: 'Match Discussion', discussions: 1243, viewing: 87, icon: '⚔️' },
-  { id: '2', name: 'Betting Discussion', discussions: 892, viewing: 64, icon: '💰' },
-  { id: '3', name: 'Tournament Discussion', discussions: 567, viewing: 43, icon: '🏆' },
-  { id: '4', name: 'Team Analysis', discussions: 432, viewing: 31, icon: '📊' },
-  { id: '5', name: 'Roster Changes', discussions: 298, viewing: 22, icon: '🔄' },
-  { id: '6', name: 'Predictions', discussions: 1876, viewing: 142, icon: '🎯' },
+  { id: '1', name: 'Match Discussion', posts: 1243, viewing: 87, icon: '⚔️' },
+  { id: '2', name: 'Betting Discussion', posts: 892, viewing: 64, icon: '💰' },
+  { id: '3', name: 'Tournament Discussion', posts: 567, viewing: 43, icon: '🏆' },
+  { id: '4', name: 'Team Analysis', posts: 432, viewing: 31, icon: '📊' },
+  { id: '5', name: 'Roster Changes', posts: 298, viewing: 22, icon: '🔄' },
+  { id: '6', name: 'Predictions', posts: 1876, viewing: 142, icon: '🎯' },
 ]
 
 export const communityPosts: CommunityPost[] = [
@@ -611,7 +513,6 @@ export const predictionHistory: PredictionHistory[] = [
     team1: 'Spirit',
     team2: 'FaZe',
     prediction: 'Spirit 2-1',
-    confidence: 82,
     date: 'May 29, 2026',
     result: 'correct',
   },
@@ -621,7 +522,6 @@ export const predictionHistory: PredictionHistory[] = [
     team1: 'NAVI',
     team2: 'MOUZ',
     prediction: 'NAVI 2-0',
-    confidence: 75,
     date: 'May 28, 2026',
     result: 'correct',
   },
@@ -631,7 +531,6 @@ export const predictionHistory: PredictionHistory[] = [
     team1: 'Vitality',
     team2: 'Liquid',
     prediction: 'Vitality 2-1',
-    confidence: 68,
     date: 'May 27, 2026',
     result: 'incorrect',
   },
@@ -641,7 +540,6 @@ export const predictionHistory: PredictionHistory[] = [
     team1: 'FaZe',
     team2: 'NAVI',
     prediction: 'FaZe 2-0',
-    confidence: 71,
     date: 'May 25, 2026',
     result: 'correct',
   },
@@ -651,7 +549,6 @@ export const predictionHistory: PredictionHistory[] = [
     team1: 'Heroic',
     team2: 'Falcons',
     prediction: 'Falcons 2-1',
-    confidence: 64,
     date: 'May 24, 2026',
     result: 'correct',
   },
@@ -661,7 +558,6 @@ export const predictionHistory: PredictionHistory[] = [
     team1: 'Spirit',
     team2: 'MOUZ',
     prediction: 'MOUZ 2-1',
-    confidence: 58,
     date: 'May 22, 2026',
     result: 'incorrect',
   },
@@ -745,157 +641,7 @@ export const communityStanding: CommunityStanding = {
   percentile: 99.4,
 }
 
-export const scheduleMatches: ScheduleMatch[] = [
-  {
-    id: 's1',
-    team1: { name: 'Spirit', logo: '🔥' },
-    team2: { name: 'FaZe', logo: '⚡' },
-    tournament: 'ESL Pro League Season 21',
-    time: 'Today 18:00',
-    status: 'upcoming',
-  },
-  {
-    id: 's2',
-    team1: { name: 'NAVI', logo: '🌊' },
-    team2: { name: 'Vitality', logo: '💎' },
-    tournament: 'ESL Pro League Season 21',
-    time: 'Today 20:30',
-    status: 'upcoming',
-  },
-  {
-    id: 's3',
-    team1: { name: 'MOUZ', logo: '💀' },
-    team2: { name: 'Heroic', logo: '⚔️' },
-    tournament: 'ESL Pro League Season 21',
-    time: 'Today 22:00',
-    status: 'live',
-    score1: 1,
-    score2: 1,
-  },
-  {
-    id: 's4',
-    team1: { name: 'Liquid', logo: '💧' },
-    team2: { name: 'Falcons', logo: '🦅' },
-    tournament: 'BLAST Premier Spring 2026',
-    time: 'Tomorrow 16:00',
-    status: 'upcoming',
-  },
-  {
-    id: 's5',
-    team1: { name: 'ENCE', logo: '🔱' },
-    team2: { name: 'BIG', logo: '💪' },
-    tournament: 'BLAST Premier Spring 2026',
-    time: 'Tomorrow 18:30',
-    status: 'upcoming',
-  },
-  {
-    id: 's6',
-    team1: { name: 'Sprout', logo: '🌱' },
-    team2: { name: 'Complexity', logo: '🎯' },
-    tournament: 'BLAST Premier Spring 2026',
-    time: 'Tomorrow 21:00',
-    status: 'upcoming',
-  },
-  {
-    id: 's7',
-    team1: { name: 'FaZe', logo: '⚡' },
-    team2: { name: 'NAVI', logo: '🌊' },
-    tournament: 'PGL Major 2026',
-    time: 'Wed 19:00',
-    status: 'upcoming',
-  },
-  {
-    id: 's8',
-    team1: { name: 'Vitality', logo: '💎' },
-    team2: { name: 'Spirit', logo: '🔥' },
-    tournament: 'PGL Major 2026',
-    time: 'Thu 17:00',
-    status: 'upcoming',
-  },
-  {
-    id: 's9',
-    team1: { name: 'Heroic', logo: '⚔️' },
-    team2: { name: 'Liquid', logo: '💧' },
-    tournament: 'ESL Pro League Season 21',
-    time: 'Fri 20:00',
-    status: 'upcoming',
-  },
-  {
-    id: 's10',
-    team1: { name: 'MOUZ', logo: '💀' },
-    team2: { name: 'ENCE', logo: '🔱' },
-    tournament: 'BLAST Premier Spring 2026',
-    time: 'Sat 15:00',
-    status: 'upcoming',
-  },
-  {
-    id: 's11',
-    team1: { name: 'BIG', logo: '💪' },
-    team2: { name: 'Falcons', logo: '🦅' },
-    tournament: 'PGL Major 2026',
-    time: 'Sat 18:30',
-    status: 'upcoming',
-  },
-  {
-    id: 's12',
-    team1: { name: 'Complexity', logo: '🎯' },
-    team2: { name: 'Sprout', logo: '🌱' },
-    tournament: 'ESL Pro League Season 21',
-    time: 'Sun 14:00',
-    status: 'upcoming',
-  },
-]
 
-export const todayKeyMatches: ScheduleMatch[] = [
-  {
-    id: 's1',
-    team1: { name: 'Spirit', logo: '🔥' },
-    team2: { name: 'FaZe', logo: '⚡' },
-    tournament: 'ESL Pro League',
-    time: '18:00',
-    status: 'upcoming',
-  },
-  {
-    id: 's2',
-    team1: { name: 'NAVI', logo: '🌊' },
-    team2: { name: 'Vitality', logo: '💎' },
-    tournament: 'ESL Pro League',
-    time: '20:30',
-    status: 'upcoming',
-  },
-  {
-    id: 's3',
-    team1: { name: 'MOUZ', logo: '💀' },
-    team2: { name: 'Heroic', logo: '⚔️' },
-    tournament: 'ESL Pro League',
-    time: '22:00',
-    status: 'live',
-    score1: 1,
-    score2: 1,
-  },
-]
-
-export const tournaments = [
-  { id: 't1', name: 'PGL Major 2026', matches: 24, prizePool: '$1,000,000' },
-  { id: 't2', name: 'ESL Pro League S21', matches: 18, prizePool: '$750,000' },
-  { id: 't3', name: 'BLAST Premier Spring', matches: 15, prizePool: '$400,000' },
-  { id: 't4', name: 'IEM Katowice 2026', matches: 12, prizePool: '$500,000' },
-  { id: 't5', name: 'DreamHack Dallas', matches: 8, prizePool: '$250,000' },
-]
-
-export const quickStats: QuickStat[] = [
-  { label: 'Today', value: 8, icon: '📅' },
-  { label: 'Live Now', value: 2, icon: '🔴' },
-  { label: 'This Week', value: 24, icon: '📆' },
-  { label: 'Major 2026', value: 48, icon: '🏆' },
-]
-
-export const scheduleStats = {
-  totalToday: 8,
-  liveNow: 2,
-  upcomingToday: 6,
-  totalThisWeek: 24,
-}
 
 export const rankingTeams: RankingTeam[] = [
   {
@@ -1085,81 +831,7 @@ export const rankingUpcoming: RankingUpcoming[] = [
   },
 ]
 
-export const blogPosts: BlogPost[] = [
-  {
-    id: 'b1',
-    title: 'PGL Major 2026: Complete Group Stage Breakdown & Betting Angles',
-    category: 'Analysis',
-    preview: 'Every group, every seed, and the value bets the market is missing. We break down map pools, head-to-head history, and where the smart money should flow.',
-    date: 'May 29, 2026',
-    readTime: '12 min read',
-    featured: true,
-    views: 12400,
-  },
-  {
-    id: 'b2',
-    title: 'Why map veto analysis is the missing piece in your betting toolkit',
-    category: 'Betting',
-    preview: 'Most bettors ignore the veto phase. Here is how understanding map pools and banning tendencies can give you a measurable edge over the bookmakers.',
-    date: 'May 28, 2026',
-    readTime: '8 min read',
-    views: 8900,
-  },
-  {
-    id: 'b3',
-    title: 'Spirit vs FaZe: Why the odds are wrong',
-    category: 'Teams',
-    preview: 'Bookmakers have FaZe as favorites. Our data says otherwise. We look at recent form, player ratings, and veto history to make the case for Spirit.',
-    date: 'May 27, 2026',
-    readTime: '6 min read',
-    views: 15200,
-  },
-  {
-    id: 'b4',
-    title: 'The meta shift: How active duty changes are reshaping pro CS2',
-    category: 'Meta',
-    preview: 'From the Anubis rework to new utility mechanics — the professional scene is adapting fast. Here is what the meta shift means for the rest of the season.',
-    date: 'May 26, 2026',
-    readTime: '10 min read',
-    views: 6700,
-  },
-  {
-    id: 'b5',
-    title: 'NAVI roster stability: Why keeping the core together pays off',
-    category: 'Teams',
-    preview: 'After years of roster experiments, NAVI has found stability. We examine why continuity trumps constant change when building a championship contender.',
-    date: 'May 25, 2026',
-    readTime: '7 min read',
-    views: 9200,
-  },
-  {
-    id: 'b6',
-    title: 'How to read HLTV rating like a pro analyst',
-    category: 'Analysis',
-    preview: 'Rating 2.0 tells a story beyond the number. Learn how impact, KAST, and opening duels combine to reveal who is truly carrying their team.',
-    date: 'May 24, 2026',
-    readTime: '9 min read',
-    views: 11300,
-  },
-  {
-    id: 'b7',
-    title: 'Live betting CS2: Strategies that actually work',
-    category: 'Betting',
-    preview: 'Live betting is fast, chaotic, and potentially very profitable. We outline the frameworks professional bettors use to stay disciplined during live CS2 matches.',
-    date: 'May 23, 2026',
-    readTime: '11 min read',
-    views: 7800,
-  },
-  {
-    id: 'b8',
-    title: 'BLAST Premier Spring 2026: Teams to watch and dark horse candidates',
-    category: 'Meta',
-    preview: 'With the BLAST bracket set, we identify the teams that could upset the seedings — and the top seeds that are vulnerable to an early exit.',
-    date: 'May 22, 2026',
-    readTime: '5 min read',
-    views: 5400,
-  },
-]
+
 
 export const leaderboardStats: LeaderboardStats = {
   totalMembers: 48750,
@@ -1314,27 +986,26 @@ export const topPredictors: TopPredictor[] = [
 ]
 
 export const myPredictions: MyPrediction[] = [
-  { id: 'mp1', match: 'Spirit vs FaZe', prediction: 'Spirit 2-1', confidence: 82, result: 'correct', date: 'May 29, 2026' },
-  { id: 'mp2', match: 'NAVI vs MOUZ', prediction: 'NAVI 2-0', confidence: 75, result: 'correct', date: 'May 28, 2026' },
-  { id: 'mp3', match: 'Vitality vs Liquid', prediction: 'Vitality 2-1', confidence: 68, result: 'incorrect', date: 'May 27, 2026' },
-  { id: 'mp4', match: 'FaZe vs NAVI', prediction: 'FaZe 2-0', confidence: 71, result: 'correct', date: 'May 25, 2026' },
-  { id: 'mp5', match: 'Heroic vs Falcons', prediction: 'Falcons 2-1', confidence: 64, result: 'pending', date: 'May 30, 2026' },
-  { id: 'mp6', match: 'Spirit vs MOUZ', prediction: 'MOUZ 2-1', confidence: 58, result: 'incorrect', date: 'May 22, 2026' },
+  { id: 'mp1', match: 'Spirit vs FaZe', prediction: 'Spirit 2-1', result: 'correct', date: 'May 29, 2026' },
+  { id: 'mp2', match: 'NAVI vs MOUZ', prediction: 'NAVI 2-0', result: 'correct', date: 'May 28, 2026' },
+  { id: 'mp3', match: 'Vitality vs Liquid', prediction: 'Vitality 2-1', result: 'incorrect', date: 'May 27, 2026' },
+  { id: 'mp4', match: 'FaZe vs NAVI', prediction: 'FaZe 2-0', result: 'correct', date: 'May 25, 2026' },
+  { id: 'mp5', match: 'Heroic vs Falcons', prediction: 'Falcons 2-1', result: 'pending', date: 'May 30, 2026' },
+  { id: 'mp6', match: 'Spirit vs MOUZ', prediction: 'MOUZ 2-1', result: 'incorrect', date: 'May 22, 2026' },
 ]
 
 export const recentCommunityPicks: RecentCommunityPick[] = [
-  { id: 'rcp1', username: 'ClutchKing', avatar: '👑', match: 'Spirit vs FaZe', prediction: 'Spirit 2-1', confidence: 82, timestamp: '2 hours ago' },
-  { id: 'rcp2', username: 'BetAnalyzer', avatar: '📊', match: 'NAVI vs MOUZ', prediction: 'NAVI 2-0', confidence: 75, timestamp: '4 hours ago' },
-  { id: 'rcp3', username: 'MapVetoMaster', avatar: '🗺️', match: 'Vitality vs Liquid', prediction: 'Vitality 2-0', confidence: 70, timestamp: '5 hours ago' },
-  { id: 'rcp4', username: 'FormTracker', avatar: '📈', match: 'Heroic vs Falcons', prediction: 'Heroic 2-1', confidence: 65, timestamp: '6 hours ago' },
-  { id: 'rcp5', username: 'ProPredictors', avatar: '🔮', match: 'ENCE vs BIG', prediction: 'ENCE 2-0', confidence: 60, timestamp: '8 hours ago' },
-  { id: 'rcp6', username: 'EntryFrag', avatar: '💥', match: 'MOUZ vs Spirit', prediction: 'MOUZ 2-1', confidence: 55, timestamp: '10 hours ago' },
+  { id: 'rcp1', username: 'ClutchKing', avatar: '👑', match: 'Spirit vs FaZe', prediction: 'Spirit 2-1', timestamp: '2 hours ago' },
+  { id: 'rcp2', username: 'BetAnalyzer', avatar: '📊', match: 'NAVI vs MOUZ', prediction: 'NAVI 2-0', timestamp: '4 hours ago' },
+  { id: 'rcp3', username: 'MapVetoMaster', avatar: '🗺️', match: 'Vitality vs Liquid', prediction: 'Vitality 2-0', timestamp: '5 hours ago' },
+  { id: 'rcp4', username: 'FormTracker', avatar: '📈', match: 'Heroic vs Falcons', prediction: 'Heroic 2-1', timestamp: '6 hours ago' },
+  { id: 'rcp5', username: 'ProPredictors', avatar: '🔮', match: 'ENCE vs BIG', prediction: 'ENCE 2-0', timestamp: '8 hours ago' },
+  { id: 'rcp6', username: 'EntryFrag', avatar: '💥', match: 'MOUZ vs Spirit', prediction: 'MOUZ 2-1', timestamp: '10 hours ago' },
 ]
 
 export const predictionRules: PredictionRule[] = [
   { title: 'One prediction per match', description: 'You may only submit one prediction per match. Edit allowed until match start.' },
-  { title: 'Scoring system', description: 'Exact score = 10 pts. Correct winner = 5 pts. Wrong = 0 pts.' },
-  { title: 'Confidence bonus', description: 'Higher confidence = higher potential bonus. Minimum 50%, maximum 100%.' },
+  { title: 'Scoring system', description: 'Correct prediction = +10 points. Wrong prediction = -3 points.' },
   { title: 'Streak multipliers', description: 'Consecutive correct predictions increase your streak multiplier up to 2x.' },
   { title: 'Season resets', description: 'Predictions reset each season. Carry-over bonuses awarded to top 100.' },
 ]
@@ -1348,14 +1019,7 @@ export const seasonStats: SeasonStat[] = [
   { label: 'Your Accuracy', value: '71%' },
 ]
 
-export const adminStats: AdminStat[] = [
-  { label: 'Active Users Today', value: 3842, change: 12.5 },
-  { label: 'New Members', value: 247, change: 8.3 },
-  { label: 'Predictions Submitted', value: 2847, change: 15.2 },
-  { label: 'Community Posts', value: 1283, change: -2.1 },
-  { label: 'Reports Pending', value: 14, change: -5.0 },
-  { label: 'Matches Tracked', value: 156, change: 0 },
-]
+
 
 export const quickActions: QuickAction[] = [
   { title: 'Create Intel Post', description: 'Publish new analysis', icon: '📝', href: '#' },
@@ -1366,23 +1030,15 @@ export const quickActions: QuickAction[] = [
   { title: 'Send Announcement', description: 'Notify all users', icon: '📢', href: '#' },
 ]
 
-export const adminActivities: AdminActivity[] = [
-  { id: 'aa1', action: 'ClutchKing created a new discussion', user: 'ClutchKing', timestamp: '2 minutes ago', icon: '💬' },
-  { id: 'aa2', action: 'Reported comment flagged for review', user: 'ModeratorBot', timestamp: '15 minutes ago', icon: '🚩' },
-  { id: 'aa3', action: 'New blog post published: "Major 2026 Preview"', user: 'CSIntelTeam', timestamp: '1 hour ago', icon: '📰' },
-  { id: 'aa4', action: 'Intel post featured on homepage', user: 'Admin', timestamp: '2 hours ago', icon: '⭐' },
-  { id: 'aa5', action: 'Prediction milestone: 10,000 predictions this week', user: 'System', timestamp: '3 hours ago', icon: '🎯' },
-  { id: 'aa6', action: 'New member milestone: 48,000 members reached', user: 'System', timestamp: '5 hours ago', icon: '👥' },
-  { id: 'aa7', action: 'Report resolved: Spam post removed', user: 'ModeratorBot', timestamp: '6 hours ago', icon: '✅' },
-]
 
-export const adminBlogPosts: AdminBlogPost[] = [
-  { id: 'abp1', title: 'PGL Major 2026: Complete Group Stage Breakdown', author: 'CSIntelTeam', date: 'May 29, 2026', status: 'published', views: 12400 },
-  { id: 'abp2', title: 'Why Map Veto Analysis is the Missing Piece', author: 'BetAnalyzer', date: 'May 28, 2026', status: 'published', views: 8900 },
-  { id: 'abp3', title: 'Spirit vs FaZe: Why the Odds are Wrong', author: 'ClutchKing', date: 'May 27, 2026', status: 'under_review', views: 15200 },
-  { id: 'abp4', title: 'The Meta Shift: How Active Duty Changes Pro CS2', author: 'MapVetoMaster', date: 'May 26, 2026', status: 'draft', views: 0 },
-  { id: 'abp5', title: 'NAVI Roster Stability: Why Continuity Wins', author: 'ESportsAnalyst', date: 'May 25, 2026', status: 'published', views: 9200 },
-]
+
+export const adminBlogPosts = [
+  { id: 'abp1', title: 'PGL Major 2026: Complete Group Stage Breakdown', author: 'CSIntelTeam', date: 'May 29, 2026', status: 'published', views: 12400, featured: true, preview: 'Analysis of the group stage...', readTime: '8 min', category: 'Analysis' },
+  { id: 'abp2', title: 'Why Map Veto Analysis is the Missing Piece', author: 'BetAnalyzer', date: 'May 28, 2026', status: 'published', views: 8900, featured: false, preview: 'Map veto changes everything...', readTime: '5 min', category: 'Analysis' },
+  { id: 'abp3', title: 'Spirit vs FaZe: Why the Odds are Wrong', author: 'ClutchKing', date: 'May 27, 2026', status: 'under_review', views: 15200, featured: false, preview: 'Market mispricing detected...', readTime: '6 min', category: 'Betting' },
+  { id: 'abp4', title: 'The Meta Shift: How Active Duty Changes Pro CS2', author: 'MapVetoMaster', date: 'May 26, 2026', status: 'draft', views: 0, featured: false, preview: 'The active duty map pool shift...', readTime: '10 min', category: 'Meta' },
+  { id: 'abp5', title: 'NAVI Roster Stability: Why Continuity Wins', author: 'ESportsAnalyst', date: 'May 25, 2026', status: 'published', views: 9200, featured: false, preview: 'NAVI keeps the same core...', readTime: '4 min', category: 'Teams' },
+] as AdminBlogPost[]
 
 export const adminIntelPosts: AdminIntelPost[] = [
   { id: 'aip1', title: 'Spirit vs FaZe - Deep Dive Analysis', author: 'ClutchKing', date: 'May 29, 2026', status: 'featured', category: 'Match Analysis' },
@@ -1390,6 +1046,25 @@ export const adminIntelPosts: AdminIntelPost[] = [
   { id: 'aip3', title: 'Underdog Value Bets for Major Qualifiers', author: 'BetAnalyzer', date: 'May 27, 2026', status: 'published', category: 'Betting' },
   { id: 'aip4', title: 'Liquid Roster Change Impact Analysis', author: 'RosterWatcher', date: 'May 26, 2026', status: 'published', category: 'Roster Changes' },
 ]
+
+export const intelPosts: IntelPost[] = adminIntelPosts.map((post) => ({
+  id: post.id,
+  title: post.title,
+  category: post.category as IntelPost['category'],
+  timestamp: post.date,
+  comments: Math.floor(Math.random() * 50),
+}))
+
+export const blogPosts: BlogPost[] = adminBlogPosts.map((post) => ({
+  id: post.id,
+  title: post.title,
+  category: post.category as BlogPost['category'],
+  preview: post.preview || '',
+  date: post.date,
+  readTime: post.readTime || '5 min',
+  featured: post.featured || false,
+  views: post.views,
+}))
 
 export const adminDiscussions: AdminDiscussion[] = [
   { id: 'ad1', title: 'Is Spirit overrated at current odds?', author: 'CS2Analyst', date: 'May 29, 2026', status: 'active', replies: 156 },
@@ -1410,34 +1085,49 @@ export const adminMatches: AdminMatch[] = [
   { id: 'am1', team1: 'Spirit', team2: 'FaZe', tournament: 'ESL Pro League S21', time: 'Today 18:00', status: 'upcoming', featured: true },
   { id: 'am2', team1: 'NAVI', team2: 'MOUZ', tournament: 'ESL Pro League S21', time: 'Today 20:30', status: 'upcoming', featured: false },
   { id: 'am3', team1: 'Vitality', team2: 'Liquid', tournament: 'PGL Major 2026', time: 'Tomorrow 16:00', status: 'upcoming', featured: true },
-  { id: 'am4', team1: 'Heroic', team2: 'Falcons', tournament: 'ESL Pro League S21', time: 'Today 22:00', status: 'upcoming', featured: false },
+  { id: 'am4', team1: 'Heroic', team2: 'Falcons', tournament: 'ESL Pro League S21', time: 'Today 22:00', status: 'completed', result: 'team1_win', featured: false },
+  { id: 'am5', team1: 'ENCE', team2: 'BIG', tournament: 'BLAST Premier', time: 'Yesterday', status: 'completed', result: 'team2_win', featured: false },
+  { id: 'am6', team1: 'Spirit', team2: 'MOUZ', tournament: 'ESL Pro League S21', time: 'Yesterday', status: 'completed', result: 'draw', featured: false },
+]
+
+
+// TODO: The following mock data arrays are transitional.
+// All need DB integration: teams, tournaments, matches, predictions, users,
+// intel_posts, blog_posts, community_posts
+
+
+
+
+// Admin dashboard mock data
+export const adminStats: AdminStat[] = [
+  { label: 'Total Users', value: 12500, change: 12 },
+  { label: 'Total Matches', value: 42, change: 8 },
+  { label: 'Total Predictions', value: 2847, change: 15 },
+  { label: 'Intel Posts', value: 156 },
+  { label: 'Blog Posts', value: 89 },
+]
+
+export const adminActivities: AdminActivity[] = [
+  { id: '1', action: 'User login spike', user: 'System', timestamp: '1 hour ago', icon: '??' },
+  { id: '2', action: 'New prediction submitted', user: 'ClutchKing', timestamp: '2 hours ago', icon: '??' },
 ]
 
 export const analyticsData: AnalyticsCard[] = [
-  { title: 'User Growth', value: '48,750', change: 12.5, chart: 'up' },
-  { title: 'Predictions/Day', value: '2,847', change: 15.2, chart: 'up' },
-  { title: 'Community Activity', value: '12,400', change: 8.3, chart: 'up' },
-  { title: 'Top Discussions', value: '1,234', change: -2.1, chart: 'down' },
+  { title: 'Page Views', value: '12.4K', change: 12, chart: 'up' },
+  { title: 'Active Users', value: '1.2K', change: 8, chart: 'up' },
 ]
 
 export const adminNotes: AdminNote[] = [
-  { title: 'Major Update', content: 'PGL Major 2026 integration launching next week. Prepare match data pipeline.', date: 'May 29, 2026' },
-  { title: 'Community Guidelines', content: 'Updated betting discussion rules. Review and approve new policy draft.', date: 'May 28, 2026' },
-  { title: 'Weekend Maintenance', content: 'Scheduled maintenance window: Saturday 02:00-04:00 UTC.', date: 'May 27, 2026' },
+  { title: 'API Update', content: 'Remember to deploy the new prediction endpoint.', date: 'Today' },
 ]
 
 export const platformStatus: PlatformStatus[] = [
-  { service: 'Web Application', status: 'operational', uptime: '99.98%' },
-  { service: 'API Server', status: 'operational', uptime: '99.95%' },
-  { service: 'Database', status: 'operational', uptime: '99.99%' },
-  { service: 'CDN / Assets', status: 'operational', uptime: '99.97%' },
-  { service: 'Auth Service', status: 'degraded', uptime: '98.2%' },
+  { service: 'Database', status: 'operational', uptime: '99.9%' },
+  { service: 'API', status: 'operational', uptime: '100%' },
 ]
 
 export const recentAlerts: Alert[] = [
-  { id: 'ral1', severity: 'critical', message: 'Authentication service response time elevated (>2s)', timestamp: '5 minutes ago' },
-  { id: 'ral2', severity: 'warning', message: 'Prediction submission volume 3x above average', timestamp: '30 minutes ago' },
-  { id: 'ral3', severity: 'info', message: 'New blog post pending review: 3 submissions', timestamp: '1 hour ago' },
-  { id: 'ral4', severity: 'info', message: 'Weekly report generated successfully', timestamp: '2 hours ago' },
-  { id: 'ral5', severity: 'warning', message: '3 reports pending moderator review', timestamp: '3 hours ago' },
+  { id: '1', severity: 'info', message: 'Scheduled maintenance in 2 hours', timestamp: 'Now' },
 ]
+
+

@@ -1,0 +1,25 @@
+﻿  Ôû▓ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Linting and checking validity of types ...
+node.exe : Failed to compile.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Percy Jay\AppData\Roam ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Failed to compile.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+./app/admin/page.tsx:33:3
+Type error: '"@/lib/types"' has no exported member named 'Prediction'. Did you mean 'MyPrediction'?
+
+[0m [90m 31 |[39m   [33mPlatformStatus[39m[33m,[39m[0m
+[0m [90m 32 |[39m   [33mAlert[39m[33m,[39m[0m
+[0m[31m[1m>[22m[39m[90m 33 |[39m   [33mPrediction[39m[33m,[39m[0m
+[0m [90m    |[39m   [31m[1m^[22m[39m[0m
+[0m [90m 34 |[39m   [33mUserWithStats[39m[0m
+[0m [90m 35 |[39m } [36mfrom[39m [32m'@/lib/types'[39m[0m
+[0m [90m 36 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

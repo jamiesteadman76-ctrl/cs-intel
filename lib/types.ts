@@ -1,7 +1,20 @@
 export interface Team {
+  id?: string
   name: string
   logo: string
   country?: string
+}
+
+export interface TeamStats {
+  total_matches: number
+  wins: number
+  losses: number
+  win_rate: number
+  last5_form: string[]
+  current_streak: {
+    type: 'W' | 'L' | null
+    count: number
+  }
 }
 
 export interface Player {
@@ -17,15 +30,19 @@ export interface Match {
   id: string
   team1: Team
   team2: Team
+  team1Data?: Team
+  team2Data?: Team
   team1Players: Player[]
   team2Players: Player[]
   time: string
   tournament: string
+  tournamentData?: { id?: string; name: string; slug?: string }
   sentiment: number
   prediction1: number
   prediction2: number
   evidenceScore: number
-  status: 'upcoming' | 'live' | 'finished'
+  status: 'upcoming' | 'live' | 'completed'
+  result?: 'team1_win' | 'team2_win' | 'draw'
   score1?: number
   score2?: number
   recentForm1: string[]
@@ -74,7 +91,6 @@ export interface CommunityPrediction {
   id: string
   username: string
   prediction: string
-  confidence: number
   timestamp: string
 }
 
@@ -92,13 +108,12 @@ export interface MatchTournament {
   teamCount: number
 }
 
-export interface CommunityDiscussion {
+export interface CommunityCategory {
   id: string
-  title: string
-  replies: number
-  views: number
-  upvotes: number
-  lastActivity: string
+  name: string
+  icon: string
+  posts: number
+  viewing: number
 }
 
 export interface CommunityPost {
@@ -112,24 +127,6 @@ export interface CommunityPost {
   views: number
   upvotes: number
   timestamp: string
-}
-
-export interface TopContributor {
-  rank: number
-  username: string
-  avatar: string
-  reputation: number
-  posts: number
-  predictions: number
-  accuracy: number
-}
-
-export interface CommunityCategory {
-  id: string
-  name: string
-  discussions: number
-  viewing: number
-  icon: string
 }
 
 export interface CommunityStats {
@@ -148,6 +145,16 @@ export interface NewMember {
   username: string
   avatar: string
   joinedDate: string
+}
+
+export interface TopContributor {
+  rank: number
+  username: string
+  avatar: string
+  reputation: number
+  posts: number
+  predictions: number
+  accuracy: number
 }
 
 export interface ProfileStats {
@@ -173,9 +180,8 @@ export interface PredictionHistory {
   team1: string
   team2: string
   prediction: string
-  confidence: number
   date: string
-  result: 'correct' | 'incorrect' | 'pending'
+  result: 'correct' | 'incorrect' | 'pending' | 'void'
 }
 
 export interface TopAnalysisPost {
@@ -222,13 +228,16 @@ export interface CommunityStanding {
   percentile: number
 }
 
+// TODO: Update ScheduleMatch to use team_id references instead of Team objects
+// Current structure uses embedded Team objects for transitional mock data
 export interface ScheduleMatch {
   id: string
   team1: Team
   team2: Team
   tournament: string
   time: string
-  status: 'upcoming' | 'live' | 'finished'
+  status: 'upcoming' | 'live' | 'completed'
+  result?: 'team1_win' | 'team2_win' | 'draw'
   score1?: number
   score2?: number
 }
@@ -333,17 +342,20 @@ export interface ScoreComponent {
 }
 
 export interface PredictionMatch {
-  id: string
-  team1: string
-  team2: string
-  logo1: string
-  logo2: string
-  time: string
-  tournament: string
-  prediction1: number
-  prediction2: number
-  status: 'upcoming' | 'live' | 'finished'
-}
+   id: string
+   team1: string
+   team2: string
+   logo1: string
+   logo2: string
+   time: string
+   tournament: string
+   prediction1: number
+   prediction2: number
+   score1?: number
+   score2?: number
+   status: 'upcoming' | 'live' | 'completed'
+   result?: 'team1_win' | 'team2_win' | 'draw'
+ }
 
 export interface CommunityConsensus {
   id: string
@@ -369,8 +381,7 @@ export interface MyPrediction {
   id: string
   match: string
   prediction: string
-  confidence: number
-  result: 'correct' | 'incorrect' | 'pending'
+  result: 'correct' | 'incorrect' | 'pending' | 'void'
   date: string
 }
 
@@ -380,7 +391,6 @@ export interface RecentCommunityPick {
   avatar: string
   match: string
   prediction: string
-  confidence: number
   timestamp: string
 }
 
@@ -423,6 +433,10 @@ export interface AdminBlogPost {
   date: string
   status: 'published' | 'draft' | 'under_review'
   views: number
+  featured?: boolean
+  preview?: string
+  readTime?: string
+  category?: string
 }
 
 export interface AdminIntelPost {
@@ -432,6 +446,8 @@ export interface AdminIntelPost {
   date: string
   status: 'published' | 'draft' | 'featured'
   category: string
+  timestamp?: string
+  comments?: number
 }
 
 export interface AdminDiscussion {
@@ -453,13 +469,15 @@ export interface ReportItem {
   status: 'pending' | 'resolved' | 'dismissed'
 }
 
+// Updated to use team_id/tournament_id references
 export interface AdminMatch {
   id: string
   team1: string
   team2: string
-  tournament: string
+  tournament?: string
   time: string
-  status: 'upcoming' | 'live' | 'finished'
+  status: 'upcoming' | 'live' | 'completed'
+  result?: 'team1_win' | 'team2_win' | 'draw'
   featured: boolean
 }
 
@@ -488,4 +506,48 @@ export interface Alert {
   severity: 'info' | 'warning' | 'critical'
   message: string
   timestamp: string
+}
+
+export interface DbTeam {
+  id: string
+  name: string
+  slug: string
+  logo: string
+  country?: string
+}
+
+export interface CompletedMatch {
+  id: string
+  team1_id: string
+  team2_id: string
+  result: 'team1_win' | 'team2_win' | 'draw'
+  match_time: string
+}
+
+export interface TeamRating {
+  teamId: string
+  teamName: string
+  rating: number
+  matchesPlayed: number
+  wins: number
+  losses: number
+  change: number
+  logo?: string | null
+  country?: string | null
+}
+
+export interface RatingHistoryEntry {
+  matchId: string
+  matchTime: string
+  team1Id: string
+  team1Name: string
+  team1RatingBefore: number
+  team1RatingAfter: number
+  team1Change: number
+  team2Id: string
+  team2Name: string
+  team2RatingBefore: number
+  team2RatingAfter: number
+  team2Change: number
+  result: 'team1_win' | 'team2_win'
 }
