@@ -1,5 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "next build --no-lint",
   "crons": [
     {
       "path": "/api/cron/verify-integrity",

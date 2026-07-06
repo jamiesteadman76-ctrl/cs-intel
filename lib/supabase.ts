@@ -5,6 +5,19 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+// Runtime guard — NEXT_PUBLIC_* are inlined at build time. If they are
+// empty here, the env vars were missing during the Vercel build.
+if (typeof window !== 'undefined') {
+  // Only runs on the client; silently skipped during SSR.
+  if (!supabaseUrl || supabaseUrl === 'undefined' || !supabaseAnonKey || supabaseAnonKey === 'undefined') {
+    console.error(
+      '[supabase] NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is missing!\n' +
+      '  URL:  ' + supabaseUrl + '\n' +
+      '  Key:  ' + (supabaseAnonKey ? supabaseAnonKey.slice(0, 8) + '...' : '(empty)')
+    )
+  }
+}
+
 // Client-side browser client - uses cookies for SSR compatibility
 // createBrowserClient stores session in cookies instead of localStorage
 export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
