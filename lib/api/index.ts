@@ -240,10 +240,16 @@ export async function submitPrediction(matchId: string, team1Win: boolean, confi
   if (error) return { success: false, error: handleSupabaseError(error) }
   return { success: true }
 }export async function evaluatePredictions(sb: SupabaseClient, matchId: string, result: MatchResult, scoringVersion: string = 'v1'): Promise<ResolveMatchResult> {
-  const admin = await requireAdmin(sb)
-  if (!admin.authorized) {
-    return { success: false, updatedPredictions: 0, correctPredictions: 0, incorrectPredictions: 0, error: 'Unauthorized' }
-  }
+  // NOTE: Authorization is already checked by the caller (resolve route)
+  // before reaching this function. The caller passes a cookie-bound server
+  // client for auth, then creates a service_role client when it needs to
+  // call this function.  A redundant requireAdmin(sb) check here would
+  // always fail because the service_role client has no user session.
+  //
+  // Defence-in-depth is preserved at the database level: the RPC
+  // `evaluate_match_predictions` is SECURITY DEFINER and its EXECUTE
+  // permission is restricted to service_role via REVOKE/GRANT.
+  //
   // Hand the entire transactional write to the database. Atomic, race-safe,
   // and idempotent against same result. See migration 20260623000200_…rpc.sql
   // and docs/SCHEMA_TRUTH.md for the contract.
