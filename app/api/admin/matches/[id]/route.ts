@@ -25,7 +25,7 @@ export async function GET(
     const { data, error } = await sb
       .from('matches')
       .select(
-        'id, team1_id, team2_id, tournament_id, match_time, status, result, score1, score2, created_at, updated_at, team1:teams!matches_team1_id_fkey(id, name, slug, logo), team2:teams!matches_team2_id_fkey(id, name, slug, logo), tournament:tournaments!matches_tournament_id_fkey(id, name, slug)'
+        'id, team1_id, team2_id, tournament_id, match_time, status, result, score1, score2, team1:teams!matches_team1_id_fkey(id, name, slug, logo), team2:teams!matches_team2_id_fkey(id, name, slug, logo), tournament:tournaments!matches_tournament_id_fkey(id, name, slug)'
       )
       .eq('id', params.id)
       .maybeSingle()
@@ -83,9 +83,7 @@ export async function PATCH(
       )
     }
 
-    const updateRow: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    }
+    const updateRow: Record<string, unknown> = {}
     if (data.team1_id !== undefined) updateRow.team1_id = data.team1_id
     if (data.team2_id !== undefined) updateRow.team2_id = data.team2_id
     if (data.tournament_id !== undefined) {
@@ -98,7 +96,7 @@ export async function PATCH(
       .update(updateRow)
       .eq('id', params.id)
       .select(
-        'id, team1_id, team2_id, tournament_id, match_time, status, created_at, updated_at, team1:teams!matches_team1_id_fkey(id, name, slug, logo), team2:teams!matches_team2_id_fkey(id, name, slug, logo), tournament:tournaments!matches_tournament_id_fkey(id, name, slug)'
+        'id, team1_id, team2_id, tournament_id, match_time, status, team1:teams!matches_team1_id_fkey(id, name, slug, logo), team2:teams!matches_team2_id_fkey(id, name, slug, logo), tournament:tournaments!matches_tournament_id_fkey(id, name, slug)'
       )
       .single()
     if (error) {

@@ -46,13 +46,14 @@ export async function PATCH(
     const result = await updateIntelPost(sb, params.id, {
       title: body.title,
       content: body.content,
+      analysis_type: body.category,
       category: body.category,
       published: body.published,
       featured: body.featured,
       slug: body.slug ?? null,
       featured_image: body.featured_image ?? null,
       excerpt: body.excerpt ?? null,
-    })
+    } as any)
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })

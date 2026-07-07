@@ -25,7 +25,7 @@ export async function GET(
     const { data, error } = await sb
       .from('teams')
       .select(
-        'id, name, slug, logo, country, founded_year, website, description, rating, win_rate, recent_form, total_matches, last_match_time, best_map, worst_map, key_player, created_at, updated_at'
+        'id, name, slug, logo, country, founded_year, website, rating, win_rate, recent_form, total_matches, last_match_time, best_map, worst_map, key_player, created_at, updated_at'
       )
       .eq('id', params.id)
       .maybeSingle()
@@ -88,7 +88,6 @@ export async function PATCH(
       updateRow.founded_year = data.founded_year
     }
     if (data.website !== undefined) updateRow.website = data.website
-    if (data.description !== undefined) updateRow.description = data.description
     if (data.rating !== undefined) updateRow.rating = data.rating
     if (data.win_rate !== undefined) updateRow.win_rate = data.win_rate
     if (data.recent_form !== undefined) updateRow.recent_form = data.recent_form
@@ -98,7 +97,7 @@ export async function PATCH(
       .update(updateRow)
       .eq('id', params.id)
       .select(
-        'id, name, slug, logo, country, founded_year, website, rating, win_rate, recent_form, description, updated_at'
+        'id, name, slug, logo, country, founded_year, website, rating, win_rate, recent_form, updated_at'
       )
       .single()
     if (error) {

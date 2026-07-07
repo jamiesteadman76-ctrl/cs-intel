@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const required = ['title', 'content', 'category', 'author_id']
+    const required = ['title', 'content', 'author_id']
     for (const field of required) {
       if (!body[field] || typeof body[field] !== 'string' || !body[field].trim()) {
         return NextResponse.json({ error: `${field} is required` }, { status: 400 })
@@ -42,14 +42,13 @@ export async function POST(request: NextRequest) {
     const result = await createBlogPost(sb, {
       title: body.title.trim(),
       content: body.content,
-      category: body.category,
+      tags: body.category ? [body.category] : [],
+      category: body.category || '',
       author_id: body.author_id,
       preview: body.preview || null,
       slug: body.slug || null,
-      read_time: body.read_time || null,
       published: body.published ?? false,
-      featured: body.featured ?? false,
-    })
+    } as any)
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })

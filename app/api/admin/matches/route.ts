@@ -23,7 +23,7 @@ export async function GET() {
     const { data, error } = await sb
       .from('matches')
       .select(
-        'id, team1_id, team2_id, tournament_id, match_time, status, result, score1, score2, created_at, updated_at, team1:teams!matches_team1_id_fkey(id, name, slug, logo), team2:teams!matches_team2_id_fkey(id, name, slug, logo), tournament:tournaments!matches_tournament_id_fkey(id, name, slug)'
+        'id, team1_id, team2_id, tournament_id, match_time, status, result, score1, score2, team1:teams!matches_team1_id_fkey(id, name, slug, logo), team2:teams!matches_team2_id_fkey(id, name, slug, logo), tournament:tournaments!matches_tournament_id_fkey(id, name, slug)'
       )
       .order('match_time', { ascending: false, nullsFirst: false })
     if (error) {
@@ -58,21 +58,18 @@ export async function POST(request: NextRequest) {
     if (!parsed.ok) return parsed.response
     const data = parsed.data
 
-    const now = new Date().toISOString()
     const insertRow = {
       team1_id: data.team1_id,
       team2_id: data.team2_id,
       tournament_id: data.tournament_id ?? null,
       match_time: data.match_time ?? null,
       status: data.status ?? 'upcoming',
-      created_at: now,
-      updated_at: now,
     }
     const { data: created, error } = await sb
       .from('matches')
       .insert(insertRow)
       .select(
-        'id, team1_id, team2_id, tournament_id, match_time, status, created_at, updated_at, team1:teams!matches_team1_id_fkey(id, name, slug, logo), team2:teams!matches_team2_id_fkey(id, name, slug, logo), tournament:tournaments!matches_tournament_id_fkey(id, name, slug)'
+        'id, team1_id, team2_id, tournament_id, match_time, status, team1:teams!matches_team1_id_fkey(id, name, slug, logo), team2:teams!matches_team2_id_fkey(id, name, slug, logo), tournament:tournaments!matches_tournament_id_fkey(id, name, slug)'
       )
       .single()
     if (error) {

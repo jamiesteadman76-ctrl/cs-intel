@@ -339,14 +339,29 @@ export async function getMatchesByTournament(sbOrId: SupabaseClient | string = s
   return fetchMatchesWithTeams(sb, sb.from('matches').select('*, tournament:tournaments!tournament_id(id, name, slug)').eq('tournament_id', String(id)).order('match_time', { ascending: true }))
 }
 export async function createBlogPost(sb: SupabaseClient, input: Partial<BlogPost> & { title: string; content: string; category: string; author_id: string }): Promise<ApiResult<string>> {
-  const post = { ...input, slug: input.slug ?? formatSlug(input.title), created_at: new Date().toISOString() }
+  const post: Record<string, any> = {
+    title: input.title,
+    content: input.content,
+    slug: input.slug ?? formatSlug(input.title),
+    author_id: input.author_id,
+    status: input.published ? 'published' : 'draft',
+  }
+  if ((input as any).tags !== undefined) post.tags = (input as any).tags
+  if (input.preview) post.excerpt = input.preview
   const { data, error } = await sb.from('blog_posts').insert(post).select('id').single()
   if (error) return { success: false, error: handleSupabaseError(error) }
   return { success: true, data: String(data.id), id: String(data.id) }
 }
 export async function updateBlogPost(sb: SupabaseClient, id: string, input: Partial<BlogPost>): Promise<ApiResult<string>> {
-  const updates: any = { ...input }
-  if (input.title && !input.slug) updates.slug = formatSlug(input.title)
+  const updates: Record<string, any> = {}
+  if (input.title !== undefined) updates.title = input.title
+  if (input.content !== undefined) updates.content = input.content
+  if (input.slug !== undefined) updates.slug = input.slug
+  if (input.author_id !== undefined) updates.author_id = input.author_id
+  if (input.preview !== undefined) updates.excerpt = input.preview
+  if (input.published !== undefined) updates.status = input.published ? 'published' : 'draft'
+  if ((input as any).tags !== undefined) updates.tags = (input as any).tags
+  if (!input.slug && input.title) updates.slug = formatSlug(input.title)
   const { data, error } = await sb.from('blog_posts').update(updates).eq('id', id).select('id').single()
   if (error) return { success: false, error: handleSupabaseError(error) }
   return { success: true, data: String(data.id), id: String(data.id) }
@@ -357,14 +372,34 @@ export async function deleteBlogPost(sb: SupabaseClient, id: string): Promise<Ap
   return { success: true, data: undefined, id: '' }
 }
 export async function createIntelPost(sb: SupabaseClient, input: Partial<IntelPost> & { title: string; content: string; category: string; author_id: string }): Promise<ApiResult<string>> {
-  const post = { ...input, slug: formatSlug(input.title), created_at: new Date().toISOString() }
+  const status = input.featured ? 'featured' : (input.published ? 'published' : 'draft')
+  const post: Record<string, any> = {
+    title: input.title,
+    content: input.content,
+    slug: formatSlug(input.title),
+    author_id: input.author_id,
+    analysis_type: (input as any).analysis_type || 'meta',
+    status,
+  }
+  if (input.featured_image) post.featured_image = input.featured_image
+  if (input.excerpt) post.excerpt = input.excerpt
   const { data, error } = await sb.from('intel_posts').insert(post).select('id').single()
   if (error) return { success: false, error: handleSupabaseError(error) }
   return { success: true, data: String(data.id), id: String(data.id) }
 }
 export async function updateIntelPost(sb: SupabaseClient, id: string, input: Partial<IntelPost>): Promise<ApiResult<string>> {
-  const updates: any = { ...input }
-  if (input.title) updates.slug = formatSlug(input.title)
+  const updates: Record<string, any> = {}
+  if (input.title !== undefined) updates.title = input.title
+  if (input.content !== undefined) updates.content = input.content
+  if (input.slug !== undefined) updates.slug = input.slug
+  if (input.author_id !== undefined) updates.author_id = input.author_id
+  if ((input as any).analysis_type !== undefined) updates.analysis_type = (input as any).analysis_type
+  if (input.published !== undefined || input.featured !== undefined) {
+    updates.status = input.featured ? 'featured' : (input.published ? 'published' : 'draft')
+  }
+  if (input.featured_image !== undefined) updates.featured_image = input.featured_image
+  if (input.excerpt !== undefined) updates.excerpt = input.excerpt
+  if (input.title && !input.slug) updates.slug = formatSlug(input.title)
   const { data, error } = await sb.from('intel_posts').update(updates).eq('id', id).select('id').single()
   if (error) return { success: false, error: handleSupabaseError(error) }
   return { success: true, data: String(data.id), id: String(data.id) }
@@ -377,21 +412,27 @@ export async function deleteIntelPost(sb: SupabaseClient, id: string): Promise<A
 export async function getTeams(sb: SupabaseClient = supabase): Promise<TeamRow[]> { const { data } = await sb.from('teams').select('id, name, slug, logo, country, rating, win_rate, recent_form'); return (data ?? []).map(row => ({ id: String(row.id), name: row.name, slug: row.slug, logo: row.logo || '?', country: row.country ?? null, rating: row.rating ?? null, win_rate: row.win_rate ?? null, recent_form: row.recent_form ?? null })) }
 export async function getTournaments(sb: SupabaseClient = supabase): Promise<TournamentRow[]> { const { data } = await sb.from('tournaments').select('id, name, slug, status, start_date, end_date, featured'); return (data ?? []).map(row => ({ id: String(row.id), name: row.name, slug: row.slug, status: row.status ?? null, start_date: row.start_date ?? null, end_date: row.end_date ?? null, featured: row.featured ?? null })) }
 export async function getIntelPosts(sb: SupabaseClient = supabase, published?: boolean | null): Promise<IntelPost[]> {
-  let query = sb.from('intel_posts').select('id, title, content, category, author_id, published, featured, created_at, slug, featured_image, excerpt')
-  if (published !== undefined) query = query.eq('published', published)
+  let query = sb.from('intel_posts').select('id, title, slug, content, excerpt, featured_image, author_id, analysis_type, status, created_at')
+  if (published !== undefined) {
+    if (published) query = query.in('status', ['published', 'featured'])
+    else query = query.eq('status', 'draft')
+  }
   const { data, error } = await query.order('created_at', { ascending: false })
   if (error) throw new Error(handleSupabaseError(error))
   return (data ?? []).map(row => ({
-    id: String(row.id), title: row.title, content: row.content, category: row.category ?? '', author_id: row.author_id ?? '', published: row.published ?? true, featured: row.featured ?? null, created_at: row.created_at ?? '', slug: row.slug ?? null, featured_image: row.featured_image ?? null, excerpt: row.excerpt ?? null
+    id: String(row.id), title: row.title, content: row.content, category: row.analysis_type ?? '', author_id: row.author_id ?? '', published: row.status === 'published' || row.status === 'featured', featured: row.status === 'featured' || null, created_at: row.created_at ?? '', slug: row.slug ?? null, featured_image: row.featured_image ?? null, excerpt: row.excerpt ?? null
   }))
 }
 export async function getBlogPosts(sb: SupabaseClient = supabase, published?: boolean | null): Promise<BlogPost[]> {
-  let query = sb.from('blog_posts').select('id, title, content, category, author_id, preview, slug, read_time, published, featured, created_at, views')
-  if (published !== undefined) query = query.eq('published', published)
+  let query = sb.from('blog_posts').select('id, title, slug, content, excerpt, tags, author_id, status, created_at')
+  if (published !== undefined) {
+    if (published) query = query.eq('status', 'published')
+    else query = query.in('status', ['draft', 'archived'])
+  }
   const { data, error } = await query.order('created_at', { ascending: false })
   if (error) throw new Error(handleSupabaseError(error))
   return (data ?? []).map(row => ({
-    id: String(row.id), title: row.title, content: row.content, category: row.category ?? '', author_id: row.author_id ?? '', preview: row.preview ?? null, slug: row.slug ?? null, read_time: row.read_time ?? null, published: row.published ?? true, featured: row.featured ?? null, created_at: row.created_at ?? '', views: row.views ?? null
+    id: String(row.id), title: row.title, content: row.content, category: (row.tags && row.tags.length > 0) ? String(row.tags[0]) : '', author_id: row.author_id ?? '', preview: row.excerpt ?? null, slug: row.slug ?? null, read_time: null, published: row.status === 'published', featured: null, created_at: row.created_at ?? '', views: null
   }))
 }
 export async function getLeaderboard(sb: SupabaseClient = supabase): Promise<LeaderboardEntry[]> {
@@ -403,7 +444,7 @@ export async function getLeaderboard(sb: SupabaseClient = supabase): Promise<Lea
 }
 export async function getUsers(sb: SupabaseClient = supabase): Promise<User[]> { const { data } = await sb.from('users').select('id, username, avatar, intel_score, created_at').order('created_at', { ascending: false }).limit(100); return (data ?? []).map((u: any) => ({ id: String(u.id), username: u.username ?? 'Anonymous', avatar: u.avatar ?? '', intel_score: u.intel_score ?? 0 })) }
 export async function createMatch(sb: SupabaseClient, input: { team1_id: string; team2_id: string; tournament_id?: string | null; match_time?: string | null; status?: string; result?: string }): Promise<ApiResult<string>> {
-  const post = { ...input, created_at: new Date().toISOString() }
+  const post = { ...input }
   const { data, error } = await sb.from('matches').insert(post).select('id').single()
   if (error) return { success: false, error: handleSupabaseError(error) }
   return { success: true, data: String(data.id), id: String(data.id) }
@@ -418,7 +459,7 @@ export async function deleteMatch(sb: SupabaseClient, id: string): Promise<ApiRe
   if (error) return { success: false, error: handleSupabaseError(error) }
   return { success: true, data: undefined, id: '' }
 }
-export async function getTeamsFull(sb: SupabaseClient = supabase): Promise<TeamRow[]> { const { data } = await sb.from('teams').select('id, name, slug, logo, country, founded_year, description, rating, win_rate, recent_form'); return (data ?? []).map(row => ({ id: String(row.id), name: row.name, slug: row.slug, logo: row.logo || '?', country: row.country ?? null, founded: row.founded_year ?? null, founded_year: row.founded_year ?? null, description: row.description ?? null, rating: row.rating ?? null, win_rate: row.win_rate ?? null, recent_form: row.recent_form ?? null })) }
+export async function getTeamsFull(sb: SupabaseClient = supabase): Promise<TeamRow[]> { const { data } = await sb.from('teams').select('id, name, slug, logo, country, founded_year, rating, win_rate, recent_form'); return (data ?? []).map(row => ({ id: String(row.id), name: row.name, slug: row.slug, logo: row.logo || '?', country: row.country ?? null, founded: row.founded_year ?? null, founded_year: row.founded_year ?? null, description: null, rating: row.rating ?? null, win_rate: row.win_rate ?? null, recent_form: row.recent_form ?? null })) }
 export async function updateTeam(sb: SupabaseClient, id: string, input: TeamUpdate): Promise<ApiResult<string>> {
   const { data, error } = await sb.from('teams').update(input).eq('id', id).select('id').single()
   if (error) return { success: false, error: handleSupabaseError(error) }

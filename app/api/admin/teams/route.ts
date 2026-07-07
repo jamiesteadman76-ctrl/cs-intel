@@ -22,7 +22,7 @@ export async function GET() {
     const { data, error } = await sb
       .from('teams')
       .select(
-        'id, name, slug, logo, country, founded_year, website, description, rating, win_rate, recent_form, total_matches, last_match_time, best_map, worst_map, key_player, created_at, updated_at'
+        'id, name, slug, logo, country, founded_year, website, rating, win_rate, recent_form, total_matches, last_match_time, best_map, worst_map, key_player, created_at, updated_at'
       )
       .order('name', { ascending: true })
     if (error) {
@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
       country: data.country ?? null,
       founded_year: data.founded_year ?? null,
       website: data.website ?? null,
-      description: data.description ?? null,
       rating: data.rating ?? 2000,
       win_rate: data.win_rate ?? 50,
       recent_form: data.recent_form ?? 'LLLLL',
@@ -78,7 +77,7 @@ export async function POST(request: NextRequest) {
       .from('teams')
       .insert(insertRow)
       .select(
-        'id, name, slug, logo, country, founded_year, website, rating, win_rate, recent_form, description, created_at'
+        'id, name, slug, logo, country, founded_year, website, rating, win_rate, recent_form, created_at'
       )
       .single()
     if (error) {

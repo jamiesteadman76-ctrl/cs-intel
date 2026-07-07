@@ -46,13 +46,12 @@ export async function PATCH(
     const result = await updateBlogPost(sb, params.id, {
       title: body.title,
       content: body.content,
+      tags: body.category ? [body.category] : undefined,
       category: body.category,
       preview: body.preview ?? null,
       slug: body.slug ?? null,
-      read_time: body.read_time ?? null,
       published: body.published,
-      featured: body.featured,
-    })
+    } as any)
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })

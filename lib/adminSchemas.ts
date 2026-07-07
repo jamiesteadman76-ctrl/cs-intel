@@ -109,7 +109,6 @@ export const TeamCreateInput = z.object({
     .union([z.array(z.string()), z.string()])
     .nullable()
     .optional(),
-  description: z.string().max(2000).nullable().optional(),
 })
 
 export const TeamUpdateInput = TeamCreateInput.partial()
