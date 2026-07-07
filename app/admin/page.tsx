@@ -121,7 +121,7 @@ export default function AdminPage() {
 
         const blogRows = blogRes.data ?? []
         setBlogPosts(
-          blogRows.map(p => ({
+          blogRows.map((p: any) => ({
             id: p.id as string,
             title: (p.title as string) ?? 'Untitled',
             author: (p.author as { username?: string } | null)?.username ?? 'Unknown',
@@ -139,8 +139,8 @@ export default function AdminPage() {
         const intelRows = intelRes.data ?? []
         setIntelPosts(
           intelRows
-            .filter(p => p.published === true)
-            .map(p => ({
+            .filter((p: any) => p.published === true)
+            .map((p: any) => ({
               id: p.id as string,
               title: (p.title as string) ?? 'Untitled',
               author: (p.author as { username?: string } | null)?.username ?? 'Unknown',
@@ -183,7 +183,7 @@ export default function AdminPage() {
           setDiscussions([])
         } else {
           setDiscussions(
-            discussionRows.map(d => ({
+            discussionRows.map((d: any) => ({
               id: d.id as string,
               title: (d.title as string) ?? 'Untitled',
               author: (d.author as { username?: string } | null)?.username ?? 'Unknown',
@@ -200,7 +200,7 @@ export default function AdminPage() {
           setReports([])
         } else {
           setReports(
-            flaggedRows.map(row => ({
+            flaggedRows.map((row: any) => ({
               id: row.id as string,
               type: 'Community Post',
               content_excerpt: ((row.content as string | null) ?? '').slice(0, 80),
