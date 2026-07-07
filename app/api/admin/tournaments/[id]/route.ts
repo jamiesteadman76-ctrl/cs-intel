@@ -7,6 +7,8 @@ import { TournamentUpdateInput, parseJsonBody, slugify } from '@/lib/adminSchema
 /**
  * GET /api/admin/tournaments/[id]
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { createSupabaseServer } from '@/lib/supabase'
 import { searchUsers, updateUserAdminStatus, suspendUser, updateUserProfile, getUsersWithStats, requireAdmin, toggleAdminRole } from '@/lib/api'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies()

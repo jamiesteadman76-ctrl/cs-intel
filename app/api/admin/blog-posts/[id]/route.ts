@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { createSupabaseServer } from '@/lib/supabase'
 import { getBlogPosts, updateBlogPost, deleteBlogPost, requireAdmin } from '@/lib/api'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

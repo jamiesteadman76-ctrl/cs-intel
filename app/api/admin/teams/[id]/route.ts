@@ -8,6 +8,8 @@ import { TeamUpdateInput, parseJsonBody, slugify } from '@/lib/adminSchemas'
  * GET /api/admin/teams/[id]
  *   Returns the single team by id. Admin-only.
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

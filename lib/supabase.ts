@@ -8,7 +8,6 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 // Runtime guard — NEXT_PUBLIC_* are inlined at build time. If they are
 // empty here, the env vars were missing during the Vercel build.
 if (typeof window !== 'undefined') {
-  // Only runs on the client; silently skipped during SSR.
   if (!supabaseUrl || supabaseUrl === 'undefined' || !supabaseAnonKey || supabaseAnonKey === 'undefined') {
     console.error(
       '[supabase] NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is missing!\n' +
@@ -18,9 +17,46 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Client-side browser client - uses cookies for SSR compatibility
-// createBrowserClient stores session in cookies instead of localStorage
-export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
+/**
+ * Lazily-initialized browser client.
+ *
+ * IMPORTANT: We use a lazy Proxy instead of a module-level `createBrowserClient()`
+ * call so that this module can be safely imported at build time (e.g., during
+ * static generation / `next build`). NEXT_PUBLIC_* env vars are only available
+ * at request time in the deployed environment, not during the build phase.
+ */
+let _browserClient: ReturnType<typeof createBrowserClient> | null = null
+
+/**
+ * Get or create the browser-side Supabase client.
+ * The client is created once on first access and cached for the lifetime of
+ * the page. On the server side (SSR / build), this throws with a clear
+ * instruction to use `createSupabaseServer()` instead.
+ */
+export function getBrowserClient(): ReturnType<typeof createBrowserClient> {
+  if (!_browserClient) {
+    if (typeof window === 'undefined') {
+      throw new Error(
+        'getBrowserClient() was called on the server. Use createSupabaseServer() ' +
+        'from @/lib/supabase with a cookie store for server-side Supabase access.'
+      )
+    }
+    _browserClient = createBrowserClient(supabaseUrl, supabaseAnonKey)
+  }
+  return _browserClient
+}
+
+// Backward-compatible Proxy — existing code that imports `{ supabase }` from
+// `@/lib/supabase` continues to work without changes. The client is NOT
+// created at module level; it is deferred until first property access.
+export const supabase = new Proxy(
+  {} as ReturnType<typeof createBrowserClient>,
+  {
+    get(_target, prop) {
+      return Reflect.get(getBrowserClient(), prop, getBrowserClient())
+    },
+  }
+)
 
 /**
  * Build a service_role Supabase client for server-only use (cron routes,

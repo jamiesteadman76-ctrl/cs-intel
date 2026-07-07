@@ -8,6 +8,8 @@ import { TeamCreateInput, parseJsonBody, slugify } from '@/lib/adminSchemas'
  * GET /api/admin/teams
  *   Returns the full team list. Admin-only.
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const cookieStore = await cookies()

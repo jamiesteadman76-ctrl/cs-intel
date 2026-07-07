@@ -8,6 +8,8 @@ import { MatchUpdateInput, parseJsonBody } from '@/lib/adminSchemas'
  * GET /api/admin/matches/[id]
  *   Returns a single match (with team + tournament pre-joined).
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

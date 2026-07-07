@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getAllTeamStats, getTeams } from '@/lib/api'
 import type { TeamStats } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const [stats, teams] = await Promise.all([

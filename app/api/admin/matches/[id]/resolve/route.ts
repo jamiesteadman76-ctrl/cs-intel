@@ -14,6 +14,8 @@ import { resolveMatchAndUpdateScores, getMatchPredictionStats, requireAdmin } fr
  *      JWT carries the authenticated role, which would 401 the RPC.
  *   3. Hand back the response summary to the admin UI.
  */
+export const dynamic = 'force-dynamic'
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }

@@ -9,6 +9,8 @@ import { MatchCreateInput, parseJsonBody } from '@/lib/adminSchemas'
  *   Full match list with team + tournament pre-joined for the admin Manage
  *   Matches table.
  */
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const cookieStore = await cookies()

@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { createSupabaseServer } from '@/lib/supabase'
 import { getTeams, getTournaments, requireAdmin } from '@/lib/api'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const cookieStore = await cookies()
