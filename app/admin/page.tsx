@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
 import { getAdminDashboardStats } from '@/lib/api'
 import { analyticsData, adminNotes, platformStatus, recentAlerts } from '@/lib/data'
 import type {

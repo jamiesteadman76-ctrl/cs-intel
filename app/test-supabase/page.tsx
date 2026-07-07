@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 export default function TestSupabasePage() {
   const [data, setData] = useState<any>(null)
   const [error, setError] = useState<any>(null)

@@ -1,6 +1,4 @@
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 import Link from 'next/link'
 import Header from '@/components/Header'
 import MatchHeader from '@/components/MatchHeader'

@@ -5,8 +5,6 @@ import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 export default function DebugPage() {
   // ── env state ──────────────────────────────────────────────────────────
   const [envUrl, setEnvUrl] = useState<string | null>(null)

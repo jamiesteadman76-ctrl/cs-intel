@@ -16,7 +16,6 @@ import { getCommunityActivity } from '@/lib/api/community'
 import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
 import type { DbMatch, LeaderboardEntry } from '@/lib/api'
 import type { IntelPost, TeamStats } from '@/lib/types'
 import type { CommunityActivity } from '@/lib/api/community'
