@@ -46,7 +46,7 @@ export default function DebugPage() {
 
     // Check if we already have a session
     supabase.auth.getSession()
-      .then(({ data: { session } }) => {
+      .then(({ data: { session } }: { data: { session: any } }) => {
         setSessionUser(session?.user ?? null)
         setSessionLoading(false)
       })

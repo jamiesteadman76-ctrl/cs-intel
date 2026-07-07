@@ -401,7 +401,7 @@ export async function getLeaderboard(sb: SupabaseClient = supabase): Promise<Lea
     intel_score: user.intel_score ?? 0, intelScore: user.intel_score ?? 0, accuracy: 0, predictions: 0, correct: 0, streak: 0, rank: index + 1
   }))
 }
-export async function getUsers(sb: SupabaseClient = supabase): Promise<User[]> { const { data } = await sb.from('users').select('id, username, avatar, intel_score, created_at').order('created_at', { ascending: false }).limit(100); return (data ?? []).map(u => ({ id: String(u.id), username: u.username ?? 'Anonymous', avatar: u.avatar ?? '', intel_score: u.intel_score ?? 0 })) }
+export async function getUsers(sb: SupabaseClient = supabase): Promise<User[]> { const { data } = await sb.from('users').select('id, username, avatar, intel_score, created_at').order('created_at', { ascending: false }).limit(100); return (data ?? []).map((u: any) => ({ id: String(u.id), username: u.username ?? 'Anonymous', avatar: u.avatar ?? '', intel_score: u.intel_score ?? 0 })) }
 export async function createMatch(sb: SupabaseClient, input: { team1_id: string; team2_id: string; tournament_id?: string | null; match_time?: string | null; status?: string; result?: string }): Promise<ApiResult<string>> {
   const post = { ...input, created_at: new Date().toISOString() }
   const { data, error } = await sb.from('matches').insert(post).select('id').single()
@@ -473,12 +473,12 @@ export async function searchUsers(opts: { query: string; sort?: string; filter?:
   if (filter === 'admins') q = q.eq('is_admin', true)
   const { data, count, error } = await q.order(sort, { ascending: false })
   if (error) throw new Error(handleSupabaseError(error))
-  const users = (data ?? []).map(u => ({ id: String(u.id), username: u.username ?? 'Anonymous', avatar: u.avatar ?? '', intel_score: u.intel_score ?? 0 }))
+  const users = (data ?? []).map((u: any) => ({ id: String(u.id), username: u.username ?? 'Anonymous', avatar: u.avatar ?? '', intel_score: u.intel_score ?? 0 }))
   return { users, total: count ?? users.length }
 }
 export async function getUsersWithStats(sb: SupabaseClient = supabase): Promise<any[]> {
   const { data } = await sb.from('users').select('id, username, avatar, intel_score, created_at').order('intel_score', { ascending: false })
-  return (data ?? []).map(u => ({ id: String(u.id), username: u.username, avatar: u.avatar, intelScore: u.intel_score ?? 0, predictions: 0, correct: 0, streak: 0 }))
+  return (data ?? []).map((u: any) => ({ id: String(u.id), username: u.username, avatar: u.avatar, intelScore: u.intel_score ?? 0, predictions: 0, correct: 0, streak: 0 }))
 }
 export async function updateUserAdminStatus(sb: SupabaseClient, userId: string, isAdmin: boolean): Promise<ApiResult<void>> {
   const { error } = await sb.from('users').update({ is_admin: isAdmin }).eq('id', userId)
@@ -568,7 +568,7 @@ export async function getComments(sbOrMatchId: SupabaseClient | string = supabas
   let query = sb.from('comments').select('*, user:users!user_id(id, username, avatar)').order('created_at', { ascending: true })
   if (matchId) query = query.eq('match_id', String(matchId))
   const { data } = await query
-  return (data ?? []).map(row => ({
+  return (data ?? []).map((row: any) => ({
     id: String(row.id), match_id: String(row.match_id), user_id: String(row.user_id),
     text: row.text, created_at: row.created_at,
     user: row.user ? { id: String(row.user.id), username: row.user.username ?? 'Anonymous', avatar: row.user.avatar ?? '', intel_score: row.user.intel_score ?? 0 } : null
@@ -576,7 +576,7 @@ export async function getComments(sbOrMatchId: SupabaseClient | string = supabas
 }
 export async function getTeamRatings(sb: SupabaseClient = supabase): Promise<{ ratings: TeamRating[] }> {
   const { data } = await sb.from('teams').select('id, name, rating, logo, country, win_rate').order('rating', { ascending: false })
-  const ratings = (data ?? []).map((row, i) => ({ teamId: String(row.id), teamName: row.name, rating: row.rating ?? 1000, matchesPlayed: 0, wins: 0, losses: 0, change: 0, logo: row.logo ?? null, country: row.country ?? null }))
+  const ratings = (data ?? []).map((row: any, i) => ({ teamId: String(row.id), teamName: row.name, rating: row.rating ?? 1000, matchesPlayed: 0, wins: 0, losses: 0, change: 0, logo: row.logo ?? null, country: row.country ?? null }))
   return { ratings }
 }
 export async function getRatingsForTeam(sbOrId: SupabaseClient | string = supabase, maybeId?: string): Promise<{ rating?: number }> {
