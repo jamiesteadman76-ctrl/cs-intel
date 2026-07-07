@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
+
 export default function DebugPage() {
   // ── env state ──────────────────────────────────────────────────────────
   const [envUrl, setEnvUrl] = useState<string | null>(null)
@@ -14,6 +15,9 @@ export default function DebugPage() {
   // ── session & login state ──────────────────────────────────────────────
   const [sessionUser, setSessionUser] = useState<User | null>(null)
   const [sessionLoading, setSessionLoading] = useState(true)
+
+  // ── client health (set inside useEffect to avoid SSR) ──────────────────
+  const [clientHealthy, setClientHealthy] = useState(false)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,10 +29,8 @@ export default function DebugPage() {
     isAdmin?: boolean
   } | null>(null)
 
-  // ── Read env vars on mount ─────────────────────────────────────────────
+  // ── Read env vars and check client on mount ────────────────────────────
   useEffect(() => {
-    // We read these at runtime so the page can show exactly what the client
-    // sees, regardless of what was inlined during the build.
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? null
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? null
 
@@ -43,6 +45,14 @@ export default function DebugPage() {
             ? 'NEXT_PUBLIC_SUPABASE_URL is missing.'
             : 'NEXT_PUBLIC_SUPABASE_ANON_KEY is missing.'
       )
+    }
+
+    // Client health check — runs only on the client where getBrowserClient() works
+    try {
+      const healthy = typeof supabase === 'object' && supabase?.auth !== undefined
+      setClientHealthy(healthy)
+    } catch {
+      setClientHealthy(false)
     }
 
     // Check if we already have a session
@@ -290,18 +300,16 @@ export default function DebugPage() {
           )}
         </section>
 
-        {/* ── Supabase Client Check ─────────────────────────────────────── */}
+        {/* ── Supabase Client Health ────────────────────────────────────── */}
         <section className="bg-[#1a1f2e] border border-gray-700 rounded-lg p-5">
           <h2 className="text-lg font-semibold text-white mb-3">
             Supabase Client Health
           </h2>
           <p className="text-sm text-gray-400">
-            <span className="text-green-400">●</span>{' '}
+            <span className={`${clientHealthy ? 'text-green-400' : 'text-gray-500'}`}>●</span>{' '}
             Client initialized:{' '}
             <span className="text-white font-mono">
-              {typeof supabase === 'object' && supabase?.auth !== undefined
-                ? 'supabase.auth is available'
-                : 'NOT AVAILABLE'}
+              {clientHealthy ? 'supabase.auth is available' : 'checking…'}
             </span>
           </p>
         </section>
