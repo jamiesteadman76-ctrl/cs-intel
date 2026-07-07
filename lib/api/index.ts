@@ -241,32 +241,81 @@ export async function submitPrediction(matchId: string, team1Win: boolean, confi
   return { success: true }
 }export async function evaluatePredictions(sb: SupabaseClient, matchId: string, result: MatchResult, scoringVersion: string = 'v1'): Promise<ResolveMatchResult> {
   // NOTE: Authorization is already checked by the caller (resolve route)
-  // before reaching this function. The caller passes a cookie-bound server
-  // client for auth, then creates a service_role client when it needs to
-  // call this function.  A redundant requireAdmin(sb) check here would
-  // always fail because the service_role client has no user session.
+  // before reaching this function.
   //
   // Defence-in-depth is preserved at the database level: the RPC
   // `evaluate_match_predictions` is SECURITY DEFINER and its EXECUTE
   // permission is restricted to service_role via REVOKE/GRANT.
   //
-  // Hand the entire transactional write to the database. Atomic, race-safe,
-  // and idempotent against same result. See migration 20260623000200_…rpc.sql
-  // and docs/SCHEMA_TRUTH.md for the contract.
-  const { data, error } = await sb.rpc('evaluate_match_predictions', {
-    p_match_id: matchId,
-    p_result: result,
-    p_scoring_version: scoringVersion,
-    p_force: false,
-  })
+  // We call the RPC via a direct HTTP fetch instead of sb.rpc() to avoid
+  // potential PostgREST safe-update / client library filter-checking issues
+  // with the service_role client. The service_role key is injected at build
+  // time so this must ONLY be called server-side (never from the browser).
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (error) {
+  if (!supabaseUrl || !serviceRoleKey) {
     return {
       success: false,
       updatedPredictions: 0,
       correctPredictions: 0,
       incorrectPredictions: 0,
-      error: handleSupabaseError(error),
+      error: 'SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL is not set',
+    }
+  }
+
+  let response: Response
+  try {
+    response = await fetch(`${supabaseUrl}/rest/v1/rpc/evaluate_match_predictions`, {
+      method: 'POST',
+      headers: {
+        'apikey': serviceRoleKey,
+        'Authorization': `Bearer ${serviceRoleKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        p_match_id: matchId,
+        p_result: result,
+        p_scoring_version: scoringVersion,
+        p_force: false,
+      }),
+    })
+  } catch (fetchErr) {
+    const msg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr)
+    console.error('[evaluatePredictions] fetch error:', msg)
+    return {
+      success: false,
+      updatedPredictions: 0,
+      correctPredictions: 0,
+      incorrectPredictions: 0,
+      error: `RPC fetch failed: ${msg}`,
+    }
+  }
+
+  if (!response.ok) {
+    const errorBody = await response.text().catch(() => '(unreadable)')
+    console.error(
+      `[evaluatePredictions] RPC returned ${response.status}: ${errorBody}`,
+    )
+    return {
+      success: false,
+      updatedPredictions: 0,
+      correctPredictions: 0,
+      incorrectPredictions: 0,
+      error: `RPC returned ${response.status}: ${errorBody.slice(0, 500)}`,
+    }
+  }
+
+  let data: any
+  try {
+    data = await response.json()
+  } catch {
+    return {
+      success: false,
+      updatedPredictions: 0,
+      correctPredictions: 0,
+      incorrectPredictions: 0,
+      error: 'RPC returned invalid JSON',
     }
   }
 
