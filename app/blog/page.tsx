@@ -1,13 +1,13 @@
 'use client'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { getBlogPosts } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import type { BlogPost } from '@/lib/types'
 
 const categories = ['Analysis', 'Betting', 'Teams', 'Meta'] as const
