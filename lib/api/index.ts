@@ -243,90 +243,93 @@ export async function submitPrediction(matchId: string, team1Win: boolean, confi
   const logTag = '[evaluatePredictions]'
   console.error(`${logTag} === START matchId=${matchId}, result=${result}, scoringVersion=${scoringVersion}`)
 
-  // --- Log what we're about to send ---
-  // Match the exact curl format from the user's working command
+  // --- Validate environment variables ---
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, '')
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !serviceRoleKey) {
+    const msg = `Missing env vars: url=${!!supabaseUrl}, key=${!!serviceRoleKey}`
+    console.error(`${logTag} ${msg}`)
+    return { success: false, updatedPredictions: 0, correctPredictions: 0, incorrectPredictions: 0, error: msg }
+  }
+
+  // --- Build the request (matches the working curl exactly) ---
   const rpcArgs = {
     p_match_id: matchId,
     p_result: result,
     p_scoring_version: scoringVersion,
     p_force: false,
   }
-  console.error(`${logTag} will call sb.rpc('evaluate_match_predictions', ${JSON.stringify(rpcArgs)}, { count: 'exact' })`)
+  const url = `${supabaseUrl}/rest/v1/pg/evaluate_match_predictions`
+  const headers = {
+    'apikey': serviceRoleKey,
+    'Authorization': `Bearer ${serviceRoleKey}`,
+    'Content-Type': 'application/json',
+  }
 
-  // The sb client is a service_role client (created via createSupabaseAdmin()).
-  // Internally, supabase-js sends POST to /rest/v1/rpc/evaluate_match_predictions
-  // which is exactly what the working curl command does.
+  console.error(`${logTag} POST ${url}`)
+  console.error(`${logTag} headers: apikey=${serviceRoleKey.slice(0, 8)}..., Authorization=Bearer ${serviceRoleKey.slice(0, 8)}...`)
+  console.error(`${logTag} body: ${JSON.stringify(rpcArgs)}`)
+
+  // --- Send the fetch ---
   try {
-    console.error(`${logTag} calling sb.rpc()...`)
-    const { data, error } = await sb.rpc('evaluate_match_predictions', rpcArgs, {
-      count: 'exact',
+    console.error(`${logTag} sending fetch...`)
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(rpcArgs),
     })
-    console.error(`${logTag} sb.rpc() returned: error=${JSON.stringify(error)}, data=${typeof data}`)
 
-    if (error) {
-      console.error(`${logTag} RPC ERROR:`, JSON.stringify(error))
-      // The error object from supabase-js has: message, details, hint, code
-      const errMsg = error.message || 'Unknown RPC error'
-      const errDetails = error.details ? ` | details: ${error.details}` : ''
-      const errHint = error.hint ? ` | hint: ${error.hint}` : ''
-      const errCode = error.code ? ` | code: ${error.code}` : ''
-      const fullErr = `${errMsg}${errDetails}${errHint}${errCode}`
-      console.error(`${logTag} FULL RPC ERROR STRING: "${fullErr}"`)
-      return {
-        success: false,
-        updatedPredictions: 0,
-        correctPredictions: 0,
-        incorrectPredictions: 0,
-        error: fullErr,
-      }
+    // Read raw text first for debugging, then parse
+    const rawBody = await response.text()
+    console.error(`${logTag} response status: ${response.status} ${response.statusText}`)
+    console.error(`${logTag} raw response body (first 2000 chars): ${rawBody.slice(0, 2000)}`)
+
+    if (!response.ok) {
+      const errMsg = `RPC returned ${response.status}: ${rawBody.slice(0, 1000)}`
+      console.error(`${logTag} ERROR: ${errMsg}`)
+      return { success: false, updatedPredictions: 0, correctPredictions: 0, incorrectPredictions: 0, error: errMsg }
     }
 
-    console.error(`${logTag} RPC succeeded. data=`, JSON.stringify(data))
-
-    // The RPC returns a JSON object with fields like:
-    //   success, previouslyResolved, correctCount, totalResolves,
-    //   predictorCount, evaluationId
-    const payload = (data ?? {}) as {
-      success?: boolean
-      previouslyResolved?: boolean
-      correctCount?: number
-      totalResolves?: number
-      predictorCount?: number
-      evaluationId?: string
+    // Parse the JSON response
+    let data: unknown
+    try {
+      data = JSON.parse(rawBody)
+    } catch {
+      const errMsg = `RPC returned non-JSON response: ${rawBody.slice(0, 500)}`
+      console.error(`${logTag} ${errMsg}`)
+      return { success: false, updatedPredictions: 0, correctPredictions: 0, incorrectPredictions: 0, error: errMsg }
     }
 
-    const correctPredictions = payload.correctCount ?? 0
-    const totalResolves = payload.totalResolves ?? 0
-    const predictorCount = payload.predictorCount ?? 0
+    console.error(`${logTag} parsed data: ${JSON.stringify(data).slice(0, 1000)}`)
 
-    console.error(`${logTag} returning: success=${payload.success ?? true}, updated=${predictorCount}, correct=${correctPredictions}, total=${totalResolves}`)
+    // The RPC returns an object (or single-element array) with score results
+    const payload = (Array.isArray(data) ? data[0] : data ?? {}) as Record<string, unknown>
+
+    const correctPredictions = Number(payload.correctCount ?? 0)
+    const totalResolves = Number(payload.totalResolves ?? 0)
+    const predictorCount = Number(payload.predictorCount ?? 0)
+
+    console.error(`${logTag} returning: success=${String(payload.success ?? true)}, updated=${predictorCount}, correct=${correctPredictions}, total=${totalResolves}`)
     console.error(`${logTag} === END`)
 
     return {
-      success: payload.success ?? true,
+      success: payload.success !== false,
       updatedPredictions: predictorCount,
       correctPredictions,
       incorrectPredictions: Math.max(0, totalResolves - correctPredictions),
-      previouslyResolved: payload.previouslyResolved ?? false,
+      previouslyResolved: payload.previouslyResolved === true,
       data: {
         predictionsResolved: predictorCount,
         usersUpdated: predictorCount,
         correctPredictions,
         incorrectPredictions: Math.max(0, totalResolves - correctPredictions),
-        evaluationId: payload.evaluationId ?? null,
+        evaluationId: (payload.evaluationId as string | null) ?? null,
       },
     }
   } catch (err) {
-    // Catch any synchronous throw from sb.rpc() or unexpected errors
-    const msg = err instanceof Error ? `${err.name}: ${err.message}\n${err.stack || '(no stack)'}` : String(err)
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
     console.error(`${logTag} UNCAUGHT THROW: ${msg}`)
-    return {
-      success: false,
-      updatedPredictions: 0,
-      correctPredictions: 0,
-      incorrectPredictions: 0,
-      error: `RPC threw: ${err instanceof Error ? err.message : String(err)}`,
-    }
+    return { success: false, updatedPredictions: 0, correctPredictions: 0, incorrectPredictions: 0, error: `RPC threw: ${err instanceof Error ? err.message : String(err)}` }
   }
 }
 
