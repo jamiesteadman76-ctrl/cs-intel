@@ -241,6 +241,7 @@ export async function submitPrediction(matchId: string, team1Win: boolean, confi
   return { success: true }
 }export async function evaluatePredictions(sb: SupabaseClient, matchId: string, result: MatchResult, scoringVersion: string = 'v1'): Promise<ResolveMatchResult> {
   const logTag = '[evaluatePredictions]'
+  console.error(`${logTag} 🔥 VERSION 2.0 — USING DIRECT FETCH TO /rest/v1/rpc/`)
   console.error(`${logTag} === START matchId=${matchId}, result=${result}, scoringVersion=${scoringVersion}`)
 
   // --- Validate environment variables ---
