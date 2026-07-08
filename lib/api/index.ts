@@ -259,7 +259,7 @@ export async function submitPrediction(matchId: string, team1Win: boolean, confi
     p_scoring_version: scoringVersion,
     p_force: false,
   }
-  const url = `${supabaseUrl}/rest/v1/pg/evaluate_match_predictions`
+  const url = `${supabaseUrl}/rest/v1/rpc/evaluate_match_predictions`
   const headers = {
     'apikey': serviceRoleKey,
     'Authorization': `Bearer ${serviceRoleKey}`,
