@@ -240,111 +240,93 @@ export async function submitPrediction(matchId: string, team1Win: boolean, confi
   if (error) return { success: false, error: handleSupabaseError(error) }
   return { success: true }
 }export async function evaluatePredictions(sb: SupabaseClient, matchId: string, result: MatchResult, scoringVersion: string = 'v1'): Promise<ResolveMatchResult> {
-  // NOTE: Authorization is already checked by the caller (resolve route)
-  // before reaching this function.
-  //
-  // Defence-in-depth is preserved at the database level: the RPC
-  // `evaluate_match_predictions` is SECURITY DEFINER and its EXECUTE
-  // permission is restricted to service_role via REVOKE/GRANT.
-  //
-  // We call the RPC via a direct HTTP fetch instead of sb.rpc() to avoid
-  // potential PostgREST safe-update / client library filter-checking issues
-  // with the service_role client. The service_role key is injected at build
-  // time so this must ONLY be called server-side (never from the browser).
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const logTag = '[evaluatePredictions]'
+  console.error(`${logTag} === START matchId=${matchId}, result=${result}, scoringVersion=${scoringVersion}`)
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    return {
-      success: false,
-      updatedPredictions: 0,
-      correctPredictions: 0,
-      incorrectPredictions: 0,
-      error: 'SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL is not set',
-    }
+  // --- Log what we're about to send ---
+  // Match the exact curl format from the user's working command
+  const rpcArgs = {
+    p_match_id: matchId,
+    p_result: result,
+    p_scoring_version: scoringVersion,
+    p_force: false,
   }
+  console.error(`${logTag} will call sb.rpc('evaluate_match_predictions', ${JSON.stringify(rpcArgs)}, { count: 'exact' })`)
 
-  let response: Response
+  // The sb client is a service_role client (created via createSupabaseAdmin()).
+  // Internally, supabase-js sends POST to /rest/v1/rpc/evaluate_match_predictions
+  // which is exactly what the working curl command does.
   try {
-    response = await fetch(`${supabaseUrl}/rest/v1/rpc/evaluate_match_predictions`, {
-      method: 'POST',
-      headers: {
-        'apikey': serviceRoleKey,
-        'Authorization': `Bearer ${serviceRoleKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        p_match_id: matchId,
-        p_result: result,
-        p_scoring_version: scoringVersion,
-        p_force: false,
-      }),
+    console.error(`${logTag} calling sb.rpc()...`)
+    const { data, error } = await sb.rpc('evaluate_match_predictions', rpcArgs, {
+      count: 'exact',
     })
-  } catch (fetchErr) {
-    const msg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr)
-    console.error('[evaluatePredictions] fetch error:', msg)
-    return {
-      success: false,
-      updatedPredictions: 0,
-      correctPredictions: 0,
-      incorrectPredictions: 0,
-      error: `RPC fetch failed: ${msg}`,
+    console.error(`${logTag} sb.rpc() returned: error=${JSON.stringify(error)}, data=${typeof data}`)
+
+    if (error) {
+      console.error(`${logTag} RPC ERROR:`, JSON.stringify(error))
+      // The error object from supabase-js has: message, details, hint, code
+      const errMsg = error.message || 'Unknown RPC error'
+      const errDetails = error.details ? ` | details: ${error.details}` : ''
+      const errHint = error.hint ? ` | hint: ${error.hint}` : ''
+      const errCode = error.code ? ` | code: ${error.code}` : ''
+      const fullErr = `${errMsg}${errDetails}${errHint}${errCode}`
+      console.error(`${logTag} FULL RPC ERROR STRING: "${fullErr}"`)
+      return {
+        success: false,
+        updatedPredictions: 0,
+        correctPredictions: 0,
+        incorrectPredictions: 0,
+        error: fullErr,
+      }
     }
-  }
 
-  if (!response.ok) {
-    const errorBody = await response.text().catch(() => '(unreadable)')
-    console.error(
-      `[evaluatePredictions] RPC returned ${response.status}: ${errorBody}`,
-    )
-    return {
-      success: false,
-      updatedPredictions: 0,
-      correctPredictions: 0,
-      incorrectPredictions: 0,
-      error: `RPC returned ${response.status}: ${errorBody.slice(0, 500)}`,
+    console.error(`${logTag} RPC succeeded. data=`, JSON.stringify(data))
+
+    // The RPC returns a JSON object with fields like:
+    //   success, previouslyResolved, correctCount, totalResolves,
+    //   predictorCount, evaluationId
+    const payload = (data ?? {}) as {
+      success?: boolean
+      previouslyResolved?: boolean
+      correctCount?: number
+      totalResolves?: number
+      predictorCount?: number
+      evaluationId?: string
     }
-  }
 
-  let data: any
-  try {
-    data = await response.json()
-  } catch {
+    const correctPredictions = payload.correctCount ?? 0
+    const totalResolves = payload.totalResolves ?? 0
+    const predictorCount = payload.predictorCount ?? 0
+
+    console.error(`${logTag} returning: success=${payload.success ?? true}, updated=${predictorCount}, correct=${correctPredictions}, total=${totalResolves}`)
+    console.error(`${logTag} === END`)
+
     return {
-      success: false,
-      updatedPredictions: 0,
-      correctPredictions: 0,
-      incorrectPredictions: 0,
-      error: 'RPC returned invalid JSON',
-    }
-  }
-
-  const payload = (data ?? {}) as {
-    success?: boolean
-    previouslyResolved?: boolean
-    correctCount?: number
-    totalResolves?: number
-    predictorCount?: number
-    evaluationId?: string
-  }
-
-  const correctPredictions = payload.correctCount ?? 0
-  const totalResolves = payload.totalResolves ?? 0
-  const predictorCount = payload.predictorCount ?? 0
-
-  return {
-    success: payload.success ?? true,
-    updatedPredictions: predictorCount,
-    correctPredictions,
-    incorrectPredictions: Math.max(0, totalResolves - correctPredictions),
-    previouslyResolved: payload.previouslyResolved ?? false,
-    data: {
-      predictionsResolved: predictorCount,
-      usersUpdated: predictorCount,
+      success: payload.success ?? true,
+      updatedPredictions: predictorCount,
       correctPredictions,
       incorrectPredictions: Math.max(0, totalResolves - correctPredictions),
-      evaluationId: payload.evaluationId ?? null,
-    },
+      previouslyResolved: payload.previouslyResolved ?? false,
+      data: {
+        predictionsResolved: predictorCount,
+        usersUpdated: predictorCount,
+        correctPredictions,
+        incorrectPredictions: Math.max(0, totalResolves - correctPredictions),
+        evaluationId: payload.evaluationId ?? null,
+      },
+    }
+  } catch (err) {
+    // Catch any synchronous throw from sb.rpc() or unexpected errors
+    const msg = err instanceof Error ? `${err.name}: ${err.message}\n${err.stack || '(no stack)'}` : String(err)
+    console.error(`${logTag} UNCAUGHT THROW: ${msg}`)
+    return {
+      success: false,
+      updatedPredictions: 0,
+      correctPredictions: 0,
+      incorrectPredictions: 0,
+      error: `RPC threw: ${err instanceof Error ? err.message : String(err)}`,
+    }
   }
 }
 
